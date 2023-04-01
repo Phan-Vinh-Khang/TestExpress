@@ -13,10 +13,6 @@ function Reftocontroller(app) {
     Rounter.post('/update-user-post', w.updateUser_Post);
     Rounter.get('/update-user-view-get/:Id', w.updateUserView_Get);
 
-
-
-
-
     //var :Id sẽ ref vào url ung với vị trí dc đặt
 
     //para 1 url,event;

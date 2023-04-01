@@ -1,6 +1,6 @@
 import db from "../model/database";
 async function homeController(ref, res) {
-    const [dataUsers, fields] = await db.execute('SELECT * FROM `users`');
+    const [dataUsers, fields] = await db.execute('SELECT * FROM users');
     // return arr[{},{}]
     {/*
         [
@@ -19,7 +19,8 @@ async function homeController(ref, res) {
         Adress: 'Ha Noi'
       }
     ]
-    */}
+    */
+    }
     // var [rows, fields] sẽ ref vào arr[0] và arr[2]
     res.render('test', { data: dataUsers }) //return data to view
     // view sử dụng properties trong obj,ko cần 1 var ref vào obj

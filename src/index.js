@@ -24,7 +24,6 @@ app.use(express.static(path.join('C:/Users/Admin/Desktop/TestExpress/public')))
 //data client to controller
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
-
 //view engines EJS
 ViewEngines(app)
 Reftocontroller(app)
