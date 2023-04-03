@@ -1,10 +1,11 @@
 import Express from 'Express'
 import w from '../controller/homeController';
 import w2 from '../controller/detailController'
+import storeController from '../controller/storeController'
 //sử dụng module.export obj khi import sẽ sử dụng var để ref vào obj 
 var Rounter = Express.Router()
 function Reftocontroller(app) {
-    Rounter.get('/', w.homeController); //ref to controller(controller homeController,func homeController)
+    // Rounter.get('/', w.homeController); //ref to controller(controller homeController,func homeController)
     Rounter.get('/detail/:Id', w2.user);
     Rounter.post('/create-user', w.createUser);
     Rounter.get('/remove-user-get/:Id', w.removeUser_Get);
@@ -12,7 +13,8 @@ function Reftocontroller(app) {
     Rounter.post('/update-user-view-post', w.updateUserView_Post);
     Rounter.post('/update-user-post', w.updateUser_Post);
     Rounter.get('/update-user-view-get/:Id', w.updateUserView_Get);
-
+    //web store
+    Rounter.get('/', storeController.test)
     //var :Id sẽ ref vào url ung với vị trí dc đặt
 
     //para 1 url,event;

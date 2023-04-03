@@ -5,6 +5,7 @@ import ViewEngines from './config/ViewEngines' //EJS
 import Reftocontroller from './Reftocontroller'
 import Reftocontroller_Api from './reftocontroller/api';
 import connection from './model/database'
+import { connect_db, check_connect } from './model/database'
 //env
 require('dotenv').config()
 //express
@@ -28,4 +29,6 @@ app.use(express.json())
 ViewEngines(app)
 Reftocontroller(app)
 Reftocontroller_Api(app)
+//
+check_connect(connect_db)
 app.listen(3000);
