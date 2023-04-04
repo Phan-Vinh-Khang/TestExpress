@@ -14,7 +14,14 @@ function Reftocontroller(app) {
     Rounter.post('/update-user-post', w.updateUser_Post);
     Rounter.get('/update-user-view-get/:Id', w.updateUserView_Get);
     //web store
-    Rounter.get('/', storeController.test)
+    Rounter.get('/', storeController.home)
+    Rounter.post('/createUser-post', storeController.createUser)
+    Rounter.get('/detail-user-store/:id', storeController.detailUserStore)
+    Rounter.get('/update-view-store-get/:id', storeController.updateViewStoreGet)
+    Rounter.post('/update-user-store', storeController.updateUserStore)
+    Rounter.post('/update-user-store', storeController.updateUserStore)
+    Rounter.post('/remove-user-store', storeController.removeUser)
+
     //var :Id sẽ ref vào url ung với vị trí dc đặt
 
     //para 1 url,event;
