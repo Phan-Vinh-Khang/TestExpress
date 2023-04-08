@@ -4,6 +4,7 @@ import * as path from 'path';
 import ViewEngines from './config/ViewEngines' //EJS
 import Reftocontroller from './Reftocontroller'
 import Reftocontroller_Api from './reftocontroller/api';
+import Reftocontroller_Store from './reftocontroller/apiStore';
 import connection from './model/database'
 import { connect_db, check_connect } from './model/database'
 //env
@@ -29,6 +30,7 @@ app.use(express.json())
 ViewEngines(app)
 Reftocontroller(app)
 Reftocontroller_Api(app)
+Reftocontroller_Store(app)
 //
 check_connect(connect_db)
-app.listen(3000);
+app.listen(port);

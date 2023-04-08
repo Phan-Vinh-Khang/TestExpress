@@ -1,3 +1,5 @@
+import Cryptr from "cryptr";
+import bcrypt from 'bcryptjs'
 import db from "../models";
 import Service from "../service/CRUDService";
 async function home(ref, res) {
@@ -30,11 +32,51 @@ async function removeUser(ref, res) {
     await Service.removeUserAction(ref.body.id)
     res.redirect('/');
 }
+async function checkUserLogin(ref, res) {
+    const data = ref.body;
+    if (data.email == undefined || data.password == undefined) {
+        res.status(200).json({
+            errCode: 1,
+            message: "cần nhập tài khoản hoặc mật khẩu"
+        })
+    }
+    else {
+        let ListUsers = await Service.getListUsers()
+        const user = await db.Users.findAll({
+            where: {
+                email: data.email
+            }
+        })
+        if (user[0] != null) {
+            let check = bcrypt.compareSync(data.password, user[0].password);
+            if (check) {
+                res.status(200).json({
+                    errCode: 0,
+                    user: user
+                })
+            }
+            else {
+                res.status(200).json({
+                    errCode: 3,
+                    message: 'password not correct'
+                })
+            }
+        }
+        else {
+            res.status(200).json({
+                errCode: 2,
+                message: "Tên tài khoản không tồn tại"
+            })
+        }
+
+    }
+}
 module.exports = {
     home,
     createUser,
     detailUserStore,
     updateViewStoreGet,
     updateUserStore,
-    removeUser
+    removeUser,
+    checkUserLogin
 }
