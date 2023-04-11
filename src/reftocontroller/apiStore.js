@@ -4,6 +4,7 @@ import storeController from '../controller/storeController'
 var Rounter = Express.Router()
 function Reftocontroller_Store(app) {
     Rounter.post('/check-user-login', storeController.checkUserLogin);
+    Rounter.post('/create-user', storeController.createUser);
 
     return app.use('/api', Rounter)
 }

@@ -13,7 +13,7 @@ require('dotenv').config()
 //express
 const app = express();
 const port = parseInt(process.env.PORT);
-//cors
+//cors (đặt trước khi active rounter)
 app.use(cors())
 //HPPT logger
 const morgan = require('morgan');
@@ -32,7 +32,7 @@ app.use(express.json())
 //view engines EJS
 ViewEngines(app)
 Reftocontroller(app)
-Reftocontroller_Api(app)
+// Reftocontroller_Api(app)
 Reftocontroller_Store(app)
 //
 check_connect(connect_db)

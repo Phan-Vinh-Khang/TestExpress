@@ -2,14 +2,50 @@ import bcrypt from 'bcryptjs'
 import db from '../models';
 const salt = bcrypt.genSaltSync(10);
 async function createUser(objData) {
-    // console.log(await hashPassword(objData.password))
-    db.Users.create({
-        name: objData.name,
-        email: objData.email,
-        password: await hashPassword(objData.password),
-        avatar: '',
-        adress: objData.address + ' ' + objData.city
-    })
+    //check user da ton tai trong database
+    if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+        const checkAvailableUser = await db.Users.findAll({
+            where: {
+                email: objData.email
+            }
+        })
+        if (checkAvailableUser == '') {
+            if (objData.password == objData.confirmPassword) {
+                db.Users.create({
+                    name: objData.name,
+                    email: objData.email,
+                    password: await hashPassword(objData.password),
+                    avatar: '',
+                    adress: objData.address + ' ' + objData.city
+                })
+                return {
+                    errCode: 0,
+                    name: objData.name,
+                    email: objData.email,
+                    address: objData.address,
+                    message: 'User created'
+                }
+            }
+            else {
+                return {
+                    errCode: 3,
+                    message: 'confirm password not correct'
+                }
+            }
+        }
+        else {
+            return {
+                errCode: 2,
+                message: 'Email already exist'
+            }
+        }
+    }
+    else {
+        return {
+            errCode: 1,
+            message: 'Cần fill thông tin'
+        }
+    }
 }
 async function hashPassword(password) {
     const hash = await bcrypt.hashSync(password, salt)
@@ -49,10 +85,47 @@ async function removeUserAction(data) {
         force: true
     })
 }
+async function checkUserLogin(data) {
+    if (data.email == '' || !data.password) {
+        return {
+            errCode: 1,
+            message: "Cần nhập tài khoản hoặc mật khẩu"
+        }
+    }
+    else {
+        const user = await db.Users.findAll({
+            where: {
+                email: data.email
+            }
+        })
+        if (user[0] != null) {
+            let check = bcrypt.compareSync(data.password, user[0].password);
+            if (check) {
+                return {
+                    errCode: 0,
+                    user: user
+                }
+            }
+            else {
+                return {
+                    errCode: 3,
+                    message: 'Password not correct'
+                }
+            }
+        }
+        else {
+            return {
+                errCode: 2,
+                message: "Tên tài khoản không tồn tại"
+            }
+        }
+    }
+}
 module.exports = {
     createUser,
     getListUsers,
     getUsers,
     UpdateUser,
-    removeUserAction
+    removeUserAction,
+    checkUserLogin
 }
