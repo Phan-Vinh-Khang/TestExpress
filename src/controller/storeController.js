@@ -20,6 +20,7 @@ async function updateViewStoreGet(ref, res) {
     res.render('storeUpdateUserView', { data: data });
 
 }
+
 async function updateUserStore(ref, res) {
     const data = await Service.getUsers(ref.body.id)
     console.log('test', data)
