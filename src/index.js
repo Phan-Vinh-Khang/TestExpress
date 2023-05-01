@@ -34,6 +34,9 @@ ViewEngines(app)
 Reftocontroller(app)
 // Reftocontroller_Api(app)
 Reftocontroller_Store(app)
-//
+app.use((ref, res) => {
+    res.send('router not exist')
+})
+
 check_connect(connect_db)
 app.listen(port);
