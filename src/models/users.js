@@ -23,6 +23,6 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: 'Users',
   });
-  return Users;
+  return Users; //return table Users trong database
 };
 //properties trong db
