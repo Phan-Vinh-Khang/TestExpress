@@ -6,6 +6,7 @@ module.exports = {
       id: {
         allowNull: false,
         autoIncrement: true,
+        primaryKey: true,
         type: Sequelize.INTEGER
       },
       name: {
@@ -32,8 +33,8 @@ module.exports = {
       sold: {
         type: Sequelize.INTEGER
       },
-      classify: {
-        type: Sequelize.STRING
+      typeprodid: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,

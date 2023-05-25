@@ -5,6 +5,8 @@ var Rounter = Express.Router()
 function Reftocontroller_Store(app) {
     Rounter.post('/check-user-login', storeController.checkUserLogin);
     Rounter.post('/create-user', storeController.createUser);
+    Rounter.post('/create-product', storeController.createProduct)
+    Rounter.put('/update-product/:id', storeController.updateProduct)
 
     return app.use('/api', Rounter)
 }

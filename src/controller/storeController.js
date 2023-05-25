@@ -2,6 +2,7 @@ import Cryptr from "cryptr";
 import bcrypt from 'bcryptjs'
 import db from "../models";
 import Service from "../service/CRUDService";
+import ServiceProd from "../service/CRUDProducts";
 async function home(ref, res) {
     // var data = await db.Users.findAll();
     const data = await Service.getListUsers();
@@ -9,6 +10,13 @@ async function home(ref, res) {
 }
 async function createUser(ref, res) {
     res.status(200).json(await Service.createUser(ref.body))
+}
+async function createProduct(ref, res) {
+    res.status(200).json(await ServiceProd.createProduct(ref.body))
+}
+async function updateProduct(ref, res) {
+    res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
+
 }
 async function detailUserStore(ref, res) {
     const data = await Service.getUsers(ref.params.id)
@@ -42,5 +50,7 @@ module.exports = {
     updateViewStoreGet,
     updateUserStore,
     removeUser,
-    checkUserLogin
+    checkUserLogin,
+    createProduct,
+    updateProduct
 }
