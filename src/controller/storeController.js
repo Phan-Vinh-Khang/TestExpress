@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import db from "../models";
 import Service from "../service/CRUDService";
 import ServiceProd from "../service/CRUDProducts";
+import ServiceRoles from "../service/CRUDRoles";
 async function home(ref, res) {
     // var data = await db.Users.findAll();
     const data = await Service.getListUsers();
@@ -15,8 +16,14 @@ async function createProduct(ref, res) {
     res.status(200).json(await ServiceProd.createProduct(ref.body))
 }
 async function updateProduct(ref, res) {
-    res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
-
+    try {
+        res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
+    } catch (e) {
+        res.status(404).json({ message: e })
+    }
+}
+async function createRole(ref, res) {
+    res.status(200).json(await ServiceRoles.createRole(ref.body));
 }
 async function detailUserStore(ref, res) {
     const data = await Service.getUsers(ref.params.id)
@@ -41,7 +48,7 @@ async function removeUser(ref, res) {
 }
 async function checkUserLogin(ref, res) {
     const data = ref.body;
-    res.status(200).json(await Service.checkUserLogin(data))
+    res.status(200).json(await Service.checkUserLogin(data, res))
 }
 module.exports = {
     home,
@@ -52,5 +59,6 @@ module.exports = {
     removeUser,
     checkUserLogin,
     createProduct,
-    updateProduct
+    updateProduct,
+    createRole
 }

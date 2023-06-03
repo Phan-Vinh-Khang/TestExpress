@@ -1,51 +1,60 @@
 import bcrypt from 'bcryptjs'
 import db from '../models';
+import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
 async function createUser(objData) {
-    //check user da ton tai trong database
-    if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
-        const checkAvailableUser = await db.Users.findAll({
-            where: {
-                email: objData.email
-            }
-        })
-        if (checkAvailableUser == '') {
-            if (objData.password == objData.confirmPassword) {
-                db.Users.create({
-                    name: objData.name,
-                    email: objData.email,
-                    password: await hashPassword(objData.password),
-                    avatar: '',
-                    adress: objData.address + ' ' + objData.city
+    return new Promise(async (aaa, reject) => {
+        try {
+            //check user da ton tai trong database
+            if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+                const checkAvailableUser = await db.Users.findAll({
+                    where: {
+                        email: objData.email
+                    }
                 })
-                return {
-                    errCode: 0,
-                    name: objData.name,
-                    email: objData.email,
-                    address: objData.address,
-                    message: 'User created'
+                if (checkAvailableUser == '') {
+                    if (objData.password == objData.confirmPassword) {
+                        db.Users.create({
+                            name: objData.name,
+                            email: objData.email,
+                            password: await hashPassword(objData.password),
+                            avatar: '',
+                            adress: objData.address + ' ' + objData.city,
+                            roleid: 1
+                        })
+                        aaa({
+                            errCode: 0,
+                            name: objData.name,
+                            email: objData.email,
+                            address: objData.address,
+                            message: 'User created'
+                        })
+                    }
+                    else {
+                        aaa({
+                            errCode: 3,
+                            message: 'confirm password not correct'
+                        })
+                    }
+                }
+                else {
+                    aaa({
+                        errCode: 2,
+                        message: 'Email already exist'
+                    })
                 }
             }
             else {
-                return {
-                    errCode: 3,
-                    message: 'confirm password not correct'
-                }
+                aaa({
+                    errCode: 1,
+                    message: 'Cần fill thông tin'
+                })
             }
         }
-        else {
-            return {
-                errCode: 2,
-                message: 'Email already exist'
-            }
+        catch (e) {
+            reject(e)
         }
-    }
-    else {
-        return {
-            errCode: 1,
-            message: 'Cần fill thông tin'
-        }
-    }
+    })
 }
 async function hashPassword(password) {
     const hash = await bcrypt.hashSync(password, salt)
@@ -85,7 +94,7 @@ async function removeUserAction(data) {
         force: true
     })
 }
-async function checkUserLogin(data) {
+async function checkUserLogin(data, res) {
     if (data.email == '' || !data.password) {
         return {
             errCode: 1,
@@ -101,9 +110,16 @@ async function checkUserLogin(data) {
         if (user[0] != null) {
             let check = bcrypt.compareSync(data.password, user[0].password);
             if (check) {
+                const token = await generalReAccessToken(user)
+                res.cookie("reAccessToken", token, {
+                    httpOnly: true,
+                    path: '/',
+                    sameSite: 'strict'
+                })
                 return {
                     errCode: 0,
-                    user: user
+                    user: user,
+                    access_token: await generalAccessToken(user),
                 }
             }
             else {

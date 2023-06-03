@@ -1,5 +1,6 @@
 import db from '../models';
 async function createProduct(data) {
+    console.log('data prod: ', data)
     let product = await db.Products.create({
         name: data.name,
         price: data.price,
@@ -15,20 +16,32 @@ async function createProduct(data) {
     }
 }
 async function updateProduct(data, id) {
-    // product.name = data.name;
-    // product.price = data.price;
-    // product.discount = data.discount
-    // product.img = data.img;
-    // product.des = data.des;
-    // product.quantity = data.quantity
-    // product.typeprodid = data.typeprodid;
-    // await product.save();
-    const w = await db.Products.findAll();
-    return {
-        errCode: 0,
-        w,
-        message: 'ok'
-    }
+    return new Promise(async (resolve, reject) => {
+        try {
+            let product = await db.Products.findOne({
+                where: {
+                    id: id
+                }
+            })
+            product.name = data.name
+            product.price = data.price
+            product.discount = data.discount
+            product.des = data.des
+            product.image = data.image
+            product.quantity = data.quantity
+            product.typeprodid = data.typeprodid
+            product.save();
+            resolve( //tuong tu return (co the su dung nhieu lan nhu return)
+                {
+                    errCode: '0',
+                    message: 'product updated',
+                    product
+                }
+            )
+        } catch (e) {
+            reject(e) //neu try bi lỗi có đâu đó sẽ chạy ở đây
+        }
+    });
 }
 async function getProduct(id) { //var id product
     return await db.Products.findAll({
