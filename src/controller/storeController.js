@@ -15,6 +15,12 @@ async function createUser(ref, res) {
 async function createProduct(ref, res) {
     res.status(200).json(await ServiceProd.createProduct(ref.body))
 }
+async function detailProduct(req, res) {
+    res.status(200).json(await ServiceProd.detailProduct(req.params.id))
+}
+async function allProduct(req, res) {
+    res.status(200).json(await ServiceProd.allProduct())
+}
 async function updateProduct(ref, res) {
     try {
         res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
@@ -35,7 +41,6 @@ async function updateViewStoreGet(ref, res) {
     res.render('storeUpdateUserView', { data: data });
 
 }
-
 async function updateUserStore(ref, res) {
     const data = await Service.getUsers(ref.body.id)
     console.log('test', data)
@@ -59,6 +64,8 @@ module.exports = {
     removeUser,
     checkUserLogin,
     createProduct,
+    detailProduct,
+    allProduct,
     updateProduct,
     createRole
 }

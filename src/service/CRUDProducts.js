@@ -15,6 +15,18 @@ async function createProduct(data) {
         message: 'ok'
     }
 }
+async function detailProduct(idProd) {
+    const prod = await db.Products.findOne({
+        where: {
+            id: idProd
+        }
+    })
+    console.log(prod.dataValues)
+    return prod;
+}
+async function allProduct() {
+    return db.Products.findAll();
+}
 async function updateProduct(data, id) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -43,15 +55,9 @@ async function updateProduct(data, id) {
         }
     });
 }
-async function getProduct(id) { //var id product
-    return await db.Products.findAll({
-        where: {
-            id: id
-        }
-    })
-}
 module.exports = {
     createProduct,
     updateProduct,
-    getProduct,
+    detailProduct,
+    allProduct,
 }
