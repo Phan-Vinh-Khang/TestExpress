@@ -110,16 +110,18 @@ async function checkUserLogin(data, res) {
         if (user[0] != null) {
             let check = bcrypt.compareSync(data.password, user[0].password);
             if (check) {
+                const { id, password, roleid, createdAt, updatedAt, ...user2 } = user[0].dataValues
                 const token = await generalReAccessToken(user)
                 res.cookie("reAccessToken", token, {
                     httpOnly: true,
+                    secure: false,
                     path: '/',
-                    sameSite: 'strict'
                 })
+                console.log('test: ', user2)
                 return {
                     errCode: 0,
-                    user: user,
-                    access_token: await generalAccessToken(user),
+                    user: user2,
+                    access_token: await generalAccessToken({ id, roleid }),
                 }
             }
             else {
@@ -137,11 +139,27 @@ async function checkUserLogin(data, res) {
         }
     }
 }
+async function detailUser(userId) {
+    return new Promise(async (resolve, reject) => {
+        const user = await db.Users.findOne({
+            where: {
+                id: userId
+            }
+        })
+        if (user) {
+            console.log(user)
+            const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
+            resolve(user2)
+        }
+        else reject()
+    })
+}
 module.exports = {
     createUser,
     getListUsers,
     getUsers,
     UpdateUser,
     removeUserAction,
-    checkUserLogin
+    checkUserLogin,
+    detailUser
 }

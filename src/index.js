@@ -1,6 +1,8 @@
 import express from 'express'
 import { engine } from 'express-handlebars';
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import bodyParser, { urlencoded } from 'body-parser'
 import * as path from 'path';
 import ViewEngines from './config/ViewEngines' //EJS
 import Reftocontroller from './Reftocontroller'
@@ -12,9 +14,22 @@ import { connect_db, check_connect } from './model/database'
 require('dotenv').config()
 //express
 const app = express();
+app.use(urlencoded({ extended: true }))
 const port = parseInt(process.env.PORT);
 //cors (đặt trước khi active rounter)
-app.use(cors())
+const corsOptions = {
+    origin: [
+        'http://localhost:3000',
+        // your origins here
+    ],
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+};
+app.use(cors(corsOptions))
+//cookieParser cookie from client
+//sử dụng req.cookies để ref đến obj cookie từ req client (nếu k sử dụng phải req.headers.cookie và phải substr)
+app.use(cookieParser())
+app.use(bodyParser.json())
 //HPPT logger
 const morgan = require('morgan');
 app.use(morgan('combined'));
@@ -37,6 +52,5 @@ Reftocontroller_Store(app)
 app.use((ref, res) => {
     res.send('router not exist')
 })
-
 check_connect(connect_db)
 app.listen(port);

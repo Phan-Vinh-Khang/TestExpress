@@ -9,8 +9,12 @@ function Reftocontroller_Store(app) {
     Rounter.post('/create-product', checkController.checkToken, storeController.createProduct)
     Rounter.get('/all-product', storeController.allProduct)
     Rounter.get('/detail-product/:id', storeController.detailProduct)
+    Rounter.get('/detail-user/:id', storeController.detailUser)
+
     Rounter.put('/update-product/:id', storeController.updateProduct)
     Rounter.post('/create-role', storeController.createRole);
+
+    Rounter.get('/reFresh-token', storeController.reFreshtoken);
 
     //var id sẽ ref vào đúng thứ tự trên URL
 
