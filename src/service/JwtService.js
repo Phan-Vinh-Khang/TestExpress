@@ -1,41 +1,50 @@
-import jwt, { verify } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
+import 'dotenv'
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'ACCESS_TOKEN';
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN || 'REFRESH_TOKEN';
 const generalAccessToken = async (data) => { //return về 1 chuỗi mã hóa của data
     //Short term token
-    return jwt.sign({ data }, 'access_token', { expiresIn: '1h' })
+    return jwt.sign(data, ACCESS_TOKEN, { expiresIn: '30s' })
 }
 //các para lần lượt: data(data này sẽ dc mã hóa khi gửi về client),secretkey,thời gian hết hạn
 const generalReAccessToken = async (data) => {
     //Long term token
-    return jwt.sign({ data }, 'reAccess_token', { expiresIn: '999d' })
+    return jwt.sign(data, REFRESH_TOKEN, { expiresIn: '999d' })
 }
 const checkToken = (req, res, next) => {//check access token
-    jwt.verify(req.body.JWTToken, 'access_token', (err, data) => {
+    jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
         if (!err) {
+            req.body = data;
             next()
         }
         else {
-            res.status(200).json('err token')
+            res.status(401).json({
+                status: 401,
+                message: 'access token expired or not correct '
+            })
         }
     })
 }
 async function reFreshtoken(tokenCookie) {
-    return jwt.verify(tokenCookie, 'reAccess_token', async (err, data) => {
+    return jwt.verify(tokenCookie, REFRESH_TOKEN, async (err, data) => {
         if (!err) {
-            let token = await generalAccessToken(data);
-            let reFreshToken = await generalReAccessToken(data);
+            const { id, roleid } = data;
+            let access_token = await generalAccessToken({ id, roleid });
+            let refresh_token = await generalReAccessToken({ id, roleid });
             return {
-                token: token,
-                reFreshToken: reFreshToken
+                status: 200,
+                access_token: access_token,
+                refresh_token: refresh_token
             };
-        } else {
-            return {
-                message: 'invalid tokenCookie'
-            }
+        } else return {
+            status: 401,
+            message: 'refresh token expired or not correct '
         }
+
     })
 }
 async function AuthUser(req, res, next) { //check xem user cần sửa data có phải la user đang đăng nhập ko
-    jwt.verify(req.body.JWTToken, 'access_token', (err, data) => {
+    jwt.verify(req.body.JWTToken, ACCESS_TOKEN, (err, data) => {
         if (!err) {
             //check data.role==1||data.id==req.params.id?
             /*

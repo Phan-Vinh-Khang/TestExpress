@@ -22,14 +22,12 @@ const corsOptions = {
         'http://localhost:3000',
         // your origins here
     ],
-    credentials: true,
-    exposedHeaders: ['set-cookie'],
+    credentials: true,//cho phép nhận cookie từ client
 };
 app.use(cors(corsOptions))
 //cookieParser cookie from client
 //sử dụng req.cookies để ref đến obj cookie từ req client (nếu k sử dụng phải req.headers.cookie và phải substr)
 app.use(cookieParser())
-app.use(bodyParser.json())
 //HPPT logger
 const morgan = require('morgan');
 app.use(morgan('combined'));

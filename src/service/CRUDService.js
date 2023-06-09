@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs';
 import db from '../models';
 import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
@@ -22,7 +22,7 @@ async function createUser(objData) {
                             adress: objData.address + ' ' + objData.city,
                             roleid: 1
                         })
-                        aaa({
+                        return ({
                             errCode: 0,
                             name: objData.name,
                             email: objData.email,
@@ -31,21 +31,21 @@ async function createUser(objData) {
                         })
                     }
                     else {
-                        aaa({
+                        return ({
                             errCode: 3,
                             message: 'confirm password not correct'
                         })
                     }
                 }
                 else {
-                    aaa({
+                    return ({
                         errCode: 2,
                         message: 'Email already exist'
                     })
                 }
             }
             else {
-                aaa({
+                return ({
                     errCode: 1,
                     message: 'Cần fill thông tin'
                 })
@@ -80,7 +80,6 @@ async function getUsers(idUser) {
     //nếu có raw sẽ chỉ return về data obj table, sẽ ko có các func của table trong obj đó nên sẽ ko sủ dụng func save() và các func khác dc
 }
 async function UpdateUser(user, data) {
-    console.log(user)
     user.name = data.name
     user.email = data.email
     user.adress = data.address
@@ -111,16 +110,15 @@ async function checkUserLogin(data, res) {
             let check = bcrypt.compareSync(data.password, user[0].password);
             if (check) {
                 const { id, password, roleid, createdAt, updatedAt, ...user2 } = user[0].dataValues
-                const token = await generalReAccessToken(user)
-                res.cookie("reAccessToken", token, {
+                const refresh_token = await generalReAccessToken({ id, roleid })
+                res.cookie("reAccessToken", refresh_token, {
                     httpOnly: true,
                     secure: false,
                     path: '/',
+                    sameSite: "strict",
                 })
-                console.log('test: ', user2)
                 return {
                     errCode: 0,
-                    user: user2,
                     access_token: await generalAccessToken({ id, roleid }),
                 }
             }
@@ -147,9 +145,25 @@ async function detailUser(userId) {
             }
         })
         if (user) {
-            console.log(user)
             const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
             resolve(user2)
+        }
+        else reject()
+    })
+}
+async function authenticationUser(userId) {
+    return new Promise(async (resolve, reject) => {
+        const user = await db.Users.findOne({
+            where: {
+                id: userId
+            }
+        })
+        if (user) {
+            const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
+            resolve({
+                status: 200,
+                user: user2
+            })
         }
         else reject()
     })
@@ -161,5 +175,6 @@ module.exports = {
     UpdateUser,
     removeUserAction,
     checkUserLogin,
-    detailUser
+    detailUser,
+    authenticationUser
 }

@@ -14,7 +14,6 @@ async function createUser(ref, res) {
     res.status(200).json(await Service.createUser(ref.body))
 }
 async function createProduct(ref, res) {
-    console.log(ref.cookies)
     res.status(200).json(await ServiceProd.createProduct(ref.body))
 }
 async function detailProduct(req, res) {
@@ -38,20 +37,38 @@ async function checkUserLogin(ref, res) {
     res.status(200).json(await Service.checkUserLogin(data, res))
 }
 async function detailUser(req, res) {
-    console.log('params', req.params)
     try {
         res.status(200).json(await Service.detailUser(req.params.id));
     } catch (e) {
-        res.status(200).json({ message: 'ko tim thay id user' })
+        res.status(404).json({ message: 'ko tim thay id user' })
     }
 }
+async function authenticationUser(req, res) {
+    try {
+        res.status(200).json(await Service.authenticationUser(req.body.id));
+    } catch (e) {
+        res.status(404).json({ message: 'ko tim thay id user' })
+    }
+}
+async function logoutUser(req, res) {
+    res.clearCookie('reAccessToken');
+    res.status(200).json({
+        status: 200,
+        message: 'logout'
+    });
+}
 async function reFreshtoken(req, res) {
-    console.log('cookies: ', req.cookies, 'headers cookies:', req.headers.cookie)
-    console.log(req.body)
-    // let tokenCookie = req.headers.tokencookie;
-    // let data = await JwtService.reFreshtoken(tokenCookie);//return obj with 2 token
-    // // res.cookie(data.reFreshtoken)
-    res.status(200).json({ mess: 'a' })
+    let objCookie = req.cookies;
+    let data = await JwtService.reFreshtoken(objCookie.reAccessToken);//return obj with 2 token
+    if (data.status == 200) {
+        res.cookie("reAccessToken", data.refresh_token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict'
+        })
+        res.status(200).json(data.access_token)
+    }
+    else res.status(200).json(data)
 }
 //
 async function detailUserStore(ref, res) {
@@ -87,5 +104,7 @@ module.exports = {
     updateProduct,
     createRole,
     reFreshtoken,
-    detailUser
+    detailUser,
+    authenticationUser,
+    logoutUser
 }
