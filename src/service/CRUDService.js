@@ -3,7 +3,7 @@ import db from '../models';
 import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
 async function createUser(objData) {
-    return new Promise(async (aaa, reject) => {
+    return new Promise(async (resolve, reject) => {
         try {
             //check user da ton tai trong database
             if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
@@ -22,7 +22,7 @@ async function createUser(objData) {
                             adress: objData.address + ' ' + objData.city,
                             roleid: 1
                         })
-                        return ({
+                        resolve({
                             errCode: 0,
                             name: objData.name,
                             email: objData.email,
@@ -31,21 +31,21 @@ async function createUser(objData) {
                         })
                     }
                     else {
-                        return ({
+                        resolve({
                             errCode: 3,
                             message: 'confirm password not correct'
                         })
                     }
                 }
                 else {
-                    return ({
+                    resolve({
                         errCode: 2,
                         message: 'Email already exist'
                     })
                 }
             }
             else {
-                return ({
+                resolve({
                     errCode: 1,
                     message: 'Cần fill thông tin'
                 })
@@ -111,11 +111,14 @@ async function checkUserLogin(data, res) {
             if (check) {
                 const { id, password, roleid, createdAt, updatedAt, ...user2 } = user[0].dataValues
                 const refresh_token = await generalReAccessToken({ id, roleid })
+                const date = new Date();
+                date.setFullYear(new Date().getFullYear() + 1)
                 res.cookie("reAccessToken", refresh_token, {
                     httpOnly: true,
                     secure: false,
                     path: '/',
                     sameSite: "strict",
+                    expires: date,
                 })
                 return {
                     errCode: 0,

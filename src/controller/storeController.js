@@ -29,6 +29,13 @@ async function updateProduct(ref, res) {
         res.status(404).json({ message: e })
     }
 }
+async function allTypeProduct(ref, res) {
+    try {
+        res.status(200).json(await ServiceProd.allTypeProduct())
+    } catch (e) {
+        res.status(404).json({ message: e })
+    }
+}
 async function createRole(ref, res) {
     res.status(200).json(await ServiceRoles.createRole(ref.body));
 }
@@ -45,7 +52,7 @@ async function detailUser(req, res) {
 }
 async function authenticationUser(req, res) {
     try {
-        res.status(200).json(await Service.authenticationUser(req.body.id));
+        res.status(200).json(await Service.authenticationUser(req.body.access_token.id));
     } catch (e) {
         res.status(404).json({ message: 'ko tim thay id user' })
     }
@@ -61,10 +68,13 @@ async function reFreshtoken(req, res) {
     let objCookie = req.cookies;
     let data = await JwtService.reFreshtoken(objCookie.reAccessToken);//return obj with 2 token
     if (data.status == 200) {
+        const date = new Date();
+        date.setFullYear(new Date().getFullYear() + 1)
         res.cookie("reAccessToken", data.refresh_token, {
             httpOnly: true,
             secure: false,
-            sameSite: 'strict'
+            sameSite: 'strict',
+            expires: date,
         })
         res.status(200).json(data.access_token)
     }
@@ -106,5 +116,6 @@ module.exports = {
     reFreshtoken,
     detailUser,
     authenticationUser,
-    logoutUser
+    logoutUser,
+    allTypeProduct
 }

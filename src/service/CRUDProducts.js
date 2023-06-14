@@ -1,16 +1,16 @@
 import db from '../models';
 async function createProduct(data) {
-    console.log('data prod: ', data)
     let product = await db.Products.create({
         name: data.name,
         price: data.price,
+        discount: data.discount,
         des: data.des,
         image: data.image,
         quantity: data.quantity,
         typeprodid: data.typeprodid
     })
     return {
-        errCode: 0,
+        status: 200,
         product,
         message: 'ok'
     }
@@ -55,9 +55,22 @@ async function updateProduct(data, id) {
         }
     });
 }
+async function allTypeProduct() {
+    return new Promise(async (resolve, reject) => {
+        const dataTypeProd = db.TypeProducts.findAll()
+        console.log(dataTypeProd)
+        try {
+            resolve(dataTypeProd)
+        } catch (e) {
+            reject(e)
+        }
+    });
+}
 module.exports = {
     createProduct,
     updateProduct,
     detailProduct,
     allProduct,
+    allTypeProduct
+
 }

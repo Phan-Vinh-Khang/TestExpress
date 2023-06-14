@@ -14,7 +14,7 @@ const generalReAccessToken = async (data) => {
 const checkToken = (req, res, next) => {//check access token
     jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
         if (!err) {
-            req.body = data;
+            req.body.access_token = data;//them 1 var properties access_token vao obj body
             next()
         }
         else {
