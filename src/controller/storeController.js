@@ -50,6 +50,27 @@ async function detailUser(req, res) {
         res.status(404).json({ message: 'ko tim thay id user' })
     }
 }
+async function allUser(req, res) {
+    try {
+        res.status(200).json(await Service.allUser());
+    } catch (e) {
+        res.status(404).json({ message: '' })
+    }
+}
+async function allRole(req, res) {
+    try {
+        res.status(200).json(await Service.allRole());
+    } catch (e) {
+        res.status(404).json({ message: '' })
+    }
+}
+async function createUserAdmin(req, res) {
+    if (req.body.access_token.roleid < 3)
+        res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
+    else
+        res.status(404).json({ message: 'khong phai tai khoan admin' })
+
+}
 async function authenticationUser(req, res) {
     try {
         res.status(200).json(await Service.authenticationUser(req.body.access_token.id));
@@ -117,5 +138,8 @@ module.exports = {
     detailUser,
     authenticationUser,
     logoutUser,
-    allTypeProduct
+    allTypeProduct,
+    allUser,
+    createUserAdmin,
+    allRole
 }

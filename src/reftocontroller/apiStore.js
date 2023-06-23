@@ -13,6 +13,10 @@ function Reftocontroller_Store(app) {
     Rounter.post('/authentication-user', checkController.checkToken, storeController.authenticationUser)
     Rounter.get('/logout-user', storeController.logoutUser)
     Rounter.get('/all-type-product', storeController.allTypeProduct)
+    Rounter.get('/all-user', storeController.allUser)
+    Rounter.get('/all-role', storeController.allRole)
+
+    Rounter.post('/create-user-admin', checkController.checkToken, storeController.createUserAdmin)
 
     Rounter.put('/update-product/:id', storeController.updateProduct)
     Rounter.post('/create-role', storeController.createRole);

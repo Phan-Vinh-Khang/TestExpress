@@ -20,7 +20,7 @@ async function createUser(objData) {
                             password: await hashPassword(objData.password),
                             avatar: '',
                             adress: objData.address + ' ' + objData.city,
-                            roleid: 1
+                            roleid: 3
                         })
                         resolve({
                             errCode: 0,
@@ -67,8 +67,73 @@ async function hashPassword(password) {
     //     }
     // })
 }
-async function getListUsers() {
-    return await db.Users.findAll();
+async function createUserAdmin(objData, { roleid }) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            //check user da ton tai trong database
+            if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+                const checkAvailableUser = await db.Users.findAll({
+                    where: {
+                        email: objData.email
+                    }
+                })
+                if (checkAvailableUser == '') {
+                    if (objData.password == objData.confirmPassword) {
+                        if (roleid <= objData.roleid) {
+                            db.Users.create({
+                                name: objData.name,
+                                email: objData.email,
+                                password: await hashPassword(objData.password),
+                                avatar: '',
+                                adress: objData.address + ' ' + objData.city,
+                                roleid: objData.roleid
+                            })
+                            resolve({
+                                status: 200,
+                                name: objData.name,
+                                email: objData.email,
+                                address: objData.address,
+                                message: 'User created'
+                            })
+                        }
+                        else if (objData.roleid == -1 || objData.roleid == '') {
+                            resolve({
+                                staus: 404,
+                                message: 'invalid role'
+                            })
+                        }
+                        else {
+                            resolve({
+                                staus: 403,
+                                message: 'unthorization'
+                            })
+                        }
+                    }
+                    else {
+                        resolve({
+                            staus: 404,
+                            message: 'confirm password not correct'
+                        })
+                    }
+                }
+                else {
+                    resolve({
+                        staus: 404,
+                        message: 'Email already exist'
+                    })
+                }
+            }
+            else {
+                resolve({
+                    staus: 404,
+                    message: 'Cần fill thông tin'
+                })
+            }
+        }
+        catch (e) {
+            reject(e)
+        }
+    })
 }
 async function getUsers(idUser) {
     return await db.Users.findAll({
@@ -154,6 +219,24 @@ async function detailUser(userId) {
         else reject()
     })
 }
+async function allUser() {
+    return new Promise(async (resolve, reject) => {
+        const user = await db.Users.findAll({ attributes: { exclude: ['password',] }, })
+        if (user) {
+            resolve(user)
+        }
+        else reject()
+    })
+}
+async function allRole() {
+    return new Promise(async (resolve, reject) => {
+        const role = await db.Roles.findAll()
+        if (role) {
+            resolve(role)
+        }
+        else reject()
+    })
+}
 async function authenticationUser(userId) {
     return new Promise(async (resolve, reject) => {
         const user = await db.Users.findOne({
@@ -173,11 +256,13 @@ async function authenticationUser(userId) {
 }
 module.exports = {
     createUser,
-    getListUsers,
     getUsers,
     UpdateUser,
     removeUserAction,
     checkUserLogin,
     detailUser,
-    authenticationUser
+    authenticationUser,
+    allUser,
+    createUserAdmin,
+    allRole
 }
