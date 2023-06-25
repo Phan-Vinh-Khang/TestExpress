@@ -18,8 +18,10 @@ function Reftocontroller_Store(app) {
 
     Rounter.post('/create-user-admin', checkController.checkToken, storeController.createUserAdmin)
 
+    Rounter.put('/update-user/:id', checkController.checkToken, storeController.updateUser)
     Rounter.put('/update-product/:id', storeController.updateProduct)
     Rounter.post('/create-role', storeController.createRole);
+    Rounter.post('/check-token', checkController.checkToken2)
 
     Rounter.get('/reFresh-token', storeController.reFreshtoken);
 

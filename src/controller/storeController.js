@@ -11,7 +11,12 @@ async function home(ref, res) {
     res.render('home.ejs', { data: data });
 }
 async function createUser(ref, res) {
-    res.status(200).json(await Service.createUser(ref.body))
+    try {
+        res.status(200).json(await Service.createUser(ref.body))
+    }
+    catch (e) {
+        res.status(409).json(e)
+    }
 }
 async function createProduct(ref, res) {
     res.status(200).json(await ServiceProd.createProduct(ref.body))
@@ -26,18 +31,23 @@ async function updateProduct(ref, res) {
     try {
         res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
     } catch (e) {
-        res.status(404).json({ message: e })
+        res.status(404).json(e)
     }
 }
 async function allTypeProduct(ref, res) {
     try {
         res.status(200).json(await ServiceProd.allTypeProduct())
     } catch (e) {
-        res.status(404).json({ message: e })
+        res.status(404).json(e)
     }
 }
 async function createRole(ref, res) {
-    res.status(200).json(await ServiceRoles.createRole(ref.body));
+    try {
+        res.status(200).json(await ServiceRoles.createRole(ref.body));
+
+    } catch (e) {
+        res.status(409).json(e);
+    }
 }
 async function checkUserLogin(ref, res) {
     const data = ref.body;
@@ -64,12 +74,26 @@ async function allRole(req, res) {
         res.status(404).json({ message: '' })
     }
 }
+async function updateUser(req, res) {
+    if (req.body.access_token.id == req.params.id || req.body.access_token.roleid < 3) {
+        try {
+            res.status(200).json(await Service.updateUser(req.params.id, req.body.data));
+            //neu Promise() return ve err se vao catch var e sẽ ref vao data err vua return
+        } catch (e) {
+            res.status(422).json(e);
+        }
+    }
+    else res.status(404).json({ message: 'khong phai admin hoac ban dang sua thong tin cua nguoi khac' })
+}
 async function createUserAdmin(req, res) {
-    if (req.body.access_token.roleid < 3)
-        res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
-    else
-        res.status(404).json({ message: 'khong phai tai khoan admin' })
-
+    if (req.body.access_token.roleid < 3) {
+        try {
+            res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
+        } catch (e) {
+            res.status(409).json(e);
+        }
+    }
+    else res.status(404).json({ message: 'khong phai tai khoan admin' })
 }
 async function authenticationUser(req, res) {
     try {
@@ -141,5 +165,6 @@ module.exports = {
     allTypeProduct,
     allUser,
     createUserAdmin,
-    allRole
+    allRole,
+    updateUser
 }

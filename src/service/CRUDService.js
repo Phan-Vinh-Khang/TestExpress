@@ -4,56 +4,52 @@ import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
 async function createUser(objData) {
     return new Promise(async (resolve, reject) => {
-        try {
-            //check user da ton tai trong database
-            if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
-                const checkAvailableUser = await db.Users.findAll({
-                    where: {
-                        email: objData.email
-                    }
-                })
-                if (checkAvailableUser == '') {
-                    if (objData.password == objData.confirmPassword) {
-                        db.Users.create({
-                            name: objData.name,
-                            email: objData.email,
-                            password: await hashPassword(objData.password),
-                            avatar: '',
-                            adress: objData.address + ' ' + objData.city,
-                            roleid: 3
-                        })
-                        resolve({
-                            errCode: 0,
-                            name: objData.name,
-                            email: objData.email,
-                            address: objData.address,
-                            message: 'User created'
-                        })
-                    }
-                    else {
-                        resolve({
-                            errCode: 3,
-                            message: 'confirm password not correct'
-                        })
-                    }
+        //check user da ton tai trong database
+        if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+            const checkAvailableUser = await db.Users.findAll({
+                where: {
+                    email: objData.email
+                }
+            })
+            if (checkAvailableUser == '') {
+                if (objData.password == objData.confirmPassword) {
+                    db.Users.create({
+                        name: objData.name,
+                        email: objData.email,
+                        password: await hashPassword(objData.password),
+                        avatar: '',
+                        adress: objData.address + ' ' + objData.city,
+                        roleid: 3
+                    })
+                    return resolve({
+                        errCode: 0,
+                        name: objData.name,
+                        email: objData.email,
+                        address: objData.address,
+                        message: 'User created'
+                    })
                 }
                 else {
-                    resolve({
-                        errCode: 2,
-                        message: 'Email already exist'
+                    return reject({
+                        errCode: 3,
+                        message: 'confirm password not correct'
                     })
                 }
             }
             else {
-                resolve({
-                    errCode: 1,
-                    message: 'Cần fill thông tin'
+                return reject({
+                    errCode: 2,
+                    message: 'Email already exist'
                 })
             }
         }
-        catch (e) {
-            reject(e)
+        else {
+            return reject({
+                errCode: 1,
+                message: 'Cần fill thông tin'
+            })
         }
+
     })
 }
 async function hashPassword(password) {
@@ -69,69 +65,64 @@ async function hashPassword(password) {
 }
 async function createUserAdmin(objData, { roleid }) {
     return new Promise(async (resolve, reject) => {
-        try {
-            //check user da ton tai trong database
-            if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
-                const checkAvailableUser = await db.Users.findAll({
-                    where: {
-                        email: objData.email
+        //check user da ton tai trong database
+        if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+            const checkAvailableUser = await db.Users.findAll({
+                where: {
+                    email: objData.email
+                }
+            })
+            if (checkAvailableUser == '') {
+                if (objData.password == objData.confirmPassword) {
+                    if (roleid <= objData.roleid) {
+                        db.Users.create({
+                            name: objData.name,
+                            email: objData.email,
+                            password: await hashPassword(objData.password),
+                            avatar: '',
+                            adress: objData.address + ' ' + objData.city,
+                            roleid: objData.roleid
+                        })
+                        return resolve({
+                            status: 200,
+                            name: objData.name,
+                            email: objData.email,
+                            address: objData.address,
+                            message: 'User created'
+                        })
                     }
-                })
-                if (checkAvailableUser == '') {
-                    if (objData.password == objData.confirmPassword) {
-                        if (roleid <= objData.roleid) {
-                            db.Users.create({
-                                name: objData.name,
-                                email: objData.email,
-                                password: await hashPassword(objData.password),
-                                avatar: '',
-                                adress: objData.address + ' ' + objData.city,
-                                roleid: objData.roleid
-                            })
-                            resolve({
-                                status: 200,
-                                name: objData.name,
-                                email: objData.email,
-                                address: objData.address,
-                                message: 'User created'
-                            })
-                        }
-                        else if (objData.roleid == -1 || objData.roleid == '') {
-                            resolve({
-                                staus: 404,
-                                message: 'invalid role'
-                            })
-                        }
-                        else {
-                            resolve({
-                                staus: 403,
-                                message: 'unthorization'
-                            })
-                        }
+                    else if (objData.roleid == -1 || objData.roleid == '') {
+                        return reject({
+                            staus: 404,
+                            message: 'invalid role'
+                        })
                     }
                     else {
-                        resolve({
-                            staus: 404,
-                            message: 'confirm password not correct'
+                        return reject({
+                            staus: 403,
+                            message: 'unthorization'
                         })
                     }
                 }
                 else {
-                    resolve({
+                    return reject({
                         staus: 404,
-                        message: 'Email already exist'
+                        message: 'confirm password not correct'
                     })
                 }
             }
             else {
-                resolve({
+                return reject({
                     staus: 404,
-                    message: 'Cần fill thông tin'
+                    message: 'Email already exist'
                 })
             }
         }
-        catch (e) {
-            reject(e)
+        else {
+            return reject({
+                staus: 404,
+                message: 'Cần fill thông tin'
+            })
         }
     })
 }
@@ -144,11 +135,43 @@ async function getUsers(idUser) {
     //return arr và arr[0] sẽ là obj table với các properties và func của obj table đó
     //nếu có raw sẽ chỉ return về data obj table, sẽ ko có các func của table trong obj đó nên sẽ ko sủ dụng func save() và các func khác dc
 }
-async function UpdateUser(user, data) {
-    user.name = data.name
-    user.email = data.email
-    user.adress = data.address
-    await user.save();
+async function updateUser(id, data) {
+    return new Promise(async (resolve, reject) => {
+        let user = await db.Users.findOne({
+            where: {
+                id: id
+            }
+        })
+        if (!user) {
+            return reject({
+                status: 422,
+                message: 'khong tim thay user'
+
+            })
+        }
+        let checkroleid = await db.Roles.findOne({
+            where: {
+                id: data.roleid
+            }
+        })
+        if (!checkroleid) {
+            return reject({//su dung return neu ko van se tiep tuc chay
+                status: 422,
+                message: 'khong tim thay roleid'
+
+            })
+        }
+        user.name = data.name
+        user.email = data.email
+        user.avatar = data.avatar
+        user.adress = data.adress
+        user.roleid = data.roleid
+        await user.save();
+        resolve({
+            status: 200,
+            message: 'update ok'
+        })
+    })
 }
 async function removeUserAction(data) {
     await db.Users.destroy({
@@ -257,12 +280,12 @@ async function authenticationUser(userId) {
 module.exports = {
     createUser,
     getUsers,
-    UpdateUser,
     removeUserAction,
     checkUserLogin,
     detailUser,
     authenticationUser,
     allUser,
     createUserAdmin,
-    allRole
+    allRole,
+    updateUser
 }

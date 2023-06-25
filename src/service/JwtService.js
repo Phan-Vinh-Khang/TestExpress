@@ -25,6 +25,23 @@ const checkToken = (req, res, next) => {//check access token
         }
     })
 }
+const checkToken2 = (req, res, next) => {
+    jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
+        if (err) {
+            res.status(498).json({
+                status: 498,
+                message: 'access token expired or not correct '
+            })
+        }
+        else {
+            res.status(200).json({
+                status: 200,
+                message: 'ok'
+            })
+        }
+    })
+
+}
 async function reFreshtoken(tokenCookie) {
     return jwt.verify(tokenCookie, REFRESH_TOKEN, async (err, data) => {
         if (!err) {
@@ -67,5 +84,6 @@ module.exports = {
     generalReAccessToken,
     checkToken,
     reFreshtoken,
-    AuthUser
+    AuthUser,
+    checkToken2
 }
