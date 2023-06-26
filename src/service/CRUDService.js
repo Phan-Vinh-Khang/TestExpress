@@ -182,51 +182,53 @@ async function removeUserAction(data) {
     })
 }
 async function checkUserLogin(data, res) {
-    if (data.email == '' || !data.password) {
-        return {
-            errCode: 1,
-            message: "Cần nhập tài khoản hoặc mật khẩu"
+    return new Promise(async (resolve, reject) => {
+        if (!data.email || !data.password) {
+            return reject({
+                status: 409,
+                message: "Cần nhập tài khoản hoặc mật khẩu"
+            })
         }
-    }
-    else {
-        const user = await db.Users.findAll({
-            where: {
-                email: data.email
-            }
-        })
-        if (user[0] != null) {
-            let check = bcrypt.compareSync(data.password, user[0].password);
-            if (check) {
-                const { id, password, roleid, createdAt, updatedAt, ...user2 } = user[0].dataValues
-                const refresh_token = await generalReAccessToken({ id, roleid })
-                const date = new Date();
-                date.setFullYear(new Date().getFullYear() + 1)
-                res.cookie("reAccessToken", refresh_token, {
-                    httpOnly: true,
-                    secure: false,
-                    path: '/',
-                    sameSite: "strict",
-                    expires: date,
-                })
-                return {
-                    errCode: 0,
-                    access_token: await generalAccessToken({ id, roleid }),
+        else {
+            const user = await db.Users.findAll({
+                where: {
+                    email: data.email
+                }
+            })
+            if (user[0]) {
+                let check = bcrypt.compareSync(data.password, user[0].password);
+                if (check) {
+                    const { id, password, roleid, createdAt, updatedAt, ...user2 } = user[0].dataValues
+                    const refresh_token = await generalReAccessToken({ id, roleid })
+                    const date = new Date();
+                    date.setFullYear(new Date().getFullYear() + 1)
+                    res.cookie("reAccessToken", refresh_token, {
+                        httpOnly: true,
+                        secure: false,
+                        path: '/',
+                        sameSite: "strict",
+                        expires: date,
+                    })
+                    return resolve({
+                        status: 200,
+                        access_token: await generalAccessToken({ id, roleid }),
+                    })
+                }
+                else {
+                    return reject({
+                        status: 409,
+                        message: 'Password not correct'
+                    })
                 }
             }
             else {
-                return {
-                    errCode: 3,
-                    message: 'Password not correct'
-                }
+                return reject({
+                    status: 409,
+                    message: "Tên tài khoản không tồn tại"
+                })
             }
         }
-        else {
-            return {
-                errCode: 2,
-                message: "Tên tài khoản không tồn tại"
-            }
-        }
-    }
+    })
 }
 async function detailUser(userId) {
     return new Promise(async (resolve, reject) => {
@@ -244,21 +246,36 @@ async function detailUser(userId) {
 }
 async function allUser() {
     return new Promise(async (resolve, reject) => {
-        const user = await db.Users.findAll({ attributes: { exclude: ['password',] }, })
-        if (user) {
-            resolve(user)
+        try {
+            const user = await db.Users.findAll({ attributes: { exclude: ['password',] }, })
+            resolve({
+                status: 200,
+                listUser: user
+            })
         }
-        else reject()
-    })
+        catch (e) {
+            reject({
+                status: 500,
+                message: 'Internal Server Error'
+            })
+        }
+    });
 }
 async function allRole() {
     return new Promise(async (resolve, reject) => {
-        const role = await db.Roles.findAll()
-        if (role) {
-            resolve(role)
+        try {
+            const role = await db.Roles.findAll()
+            resolve({
+                status: 200,
+                listRole: role
+            })
+        } catch (e) {
+            reject({
+                status: 500,
+                message: 'Internal Server Error'
+            })
         }
-        else reject()
-    })
+    });
 }
 async function authenticationUser(userId) {
     return new Promise(async (resolve, reject) => {

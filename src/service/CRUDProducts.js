@@ -25,7 +25,10 @@ async function detailProduct(idProd) {
     return prod;
 }
 async function allProduct() {
-    return db.Products.findAll();
+    return new Promise(async (resolve, reject) => {
+        let listProduct = await db.Products.findAll();
+        resolve(listProduct)
+    })
 }
 async function updateProduct(data, id) {
     return new Promise(async (resolve, reject) => {

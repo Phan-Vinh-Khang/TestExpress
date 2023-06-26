@@ -8,7 +8,7 @@ async function createRole(data) {
         })
         if (check) {
             return reject({
-                status: '',
+                status: '409',
                 message: 'roleid da ton tai'
             })
         }
@@ -16,8 +16,7 @@ async function createRole(data) {
             name: data.name
         })
         resolve({
-            errCode: 0,
-            message: 'ok',
+            status: 200,
             role
         })
     })

@@ -50,8 +50,12 @@ async function createRole(ref, res) {
     }
 }
 async function checkUserLogin(ref, res) {
-    const data = ref.body;
-    res.status(200).json(await Service.checkUserLogin(data, res))
+    try {
+        const data = ref.body;
+        res.status(200).json(await Service.checkUserLogin(data, res))
+    } catch (e) {
+        res.status(409).json(e)
+    }
 }
 async function detailUser(req, res) {
     try {
@@ -64,14 +68,14 @@ async function allUser(req, res) {
     try {
         res.status(200).json(await Service.allUser());
     } catch (e) {
-        res.status(404).json({ message: '' })
+        res.status(500).json(e)
     }
 }
 async function allRole(req, res) {
     try {
         res.status(200).json(await Service.allRole());
     } catch (e) {
-        res.status(404).json({ message: '' })
+        res.status(500).json(e)
     }
 }
 async function updateUser(req, res) {
