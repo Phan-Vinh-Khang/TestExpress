@@ -173,6 +173,27 @@ async function updateUser(id, data) {
         })
     })
 }
+async function deleteUser(id) {
+    return new Promise(async (resolve, reject) => {
+        const data = await db.Users.destroy({
+            where: {
+                id: id
+            }
+        })
+        if (data) {
+            resolve({
+                status: 200,
+                message: 'delete successfully'
+            })
+        }
+        else {
+            reject({
+                status: '',
+                message: 'khong tim thay iduser'
+            })
+        }
+    })
+}
 async function removeUserAction(data) {
     await db.Users.destroy({
         where: {
@@ -304,5 +325,6 @@ module.exports = {
     allUser,
     createUserAdmin,
     allRole,
-    updateUser
+    updateUser,
+    deleteUser
 }
