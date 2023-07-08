@@ -101,7 +101,6 @@ async function createUserAdmin(req, res) {
     else res.status(404).json({ message: 'khong phai tai khoan admin' })
 }
 async function deleteUser(req, res) {
-    console.log(req.params)
     try {
         if (req.body.access_token.roleid > 2) {
             throw {
@@ -109,6 +108,18 @@ async function deleteUser(req, res) {
             }
         }
         res.status(200).json(await Service.deleteUser(req.params.id));
+    } catch (e) {
+        res.status(404).json(e)
+    }
+}
+async function deleteUserMany(req, res) {
+    try {
+        if (req.body.access_token.roleid > 2) {
+            throw {
+                message: 'khong phai admin'
+            }
+        }
+        res.status(200).json(await Service.deleteUserMany(req.body.listId));
     } catch (e) {
         res.status(404).json(e)
     }
@@ -185,5 +196,6 @@ module.exports = {
     createUserAdmin,
     allRole,
     updateUser,
-    deleteUser
+    deleteUser,
+    deleteUserMany
 }

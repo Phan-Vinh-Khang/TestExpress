@@ -142,7 +142,12 @@ async function updateUser(id, data) {
                 id: id
             }
         })
-        if (!user) {
+        let checkDataEmailExist = await db.Users.findOne({
+            where: {
+                email: data.email
+            }
+        })
+        if (!user) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
             return reject({
                 status: 422,
                 message: 'khong tim thay user'
@@ -154,23 +159,31 @@ async function updateUser(id, data) {
                 id: data.roleid
             }
         })
-        if (!checkroleid) {
+        if (!checkroleid) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
             return reject({//su dung return neu ko van se tiep tuc chay
                 status: 422,
                 message: 'khong tim thay roleid'
 
             })
         }
-        user.name = data.name
-        user.email = data.email
-        user.avatar = data.avatar
-        user.adress = data.adress
-        user.roleid = data.roleid
-        await user.save();
-        resolve({
-            status: 200,
-            message: 'update ok'
-        })
+        if (!checkDataEmailExist) {
+            user.name = data.name
+            user.email = data.email
+            user.avatar = data.avatar
+            user.adress = data.adress
+            user.roleid = data.roleid
+            await user.save();
+            resolve({
+                status: 200,
+                message: 'update ok'
+            })
+        }
+        else {
+            reject({
+                status: 409,
+                message: 'email đã tồn tại'
+            })
+        }
     })
 }
 async function deleteUser(id) {
@@ -192,6 +205,33 @@ async function deleteUser(id) {
                 message: 'khong tim thay iduser'
             })
         }
+    })
+}
+async function deleteUserMany(listId) {
+    return new Promise(async (resolve, reject) => {
+        console.log('listId', listId)
+        const data = await db.Users.findAll({
+            where: {
+                id: listId //ref vào dc arr,ko can su dung map()
+            }
+        })
+        console.log('data', data.length)
+        if (data.length != listId.length) {
+            return reject({
+                status: '',
+                message: 'id user dc chon khong ton tai'
+            })
+        }
+        await db.Users.destroy({
+            where: {
+                id: listId //ref vào dc arr,ko can su dung map()
+            }
+        })
+        resolve({
+            status: 200,
+            message: 'delete successfully ' + listId.length + ' users'
+        })
+
     })
 }
 async function removeUserAction(data) {
@@ -326,5 +366,6 @@ module.exports = {
     createUserAdmin,
     allRole,
     updateUser,
-    deleteUser
+    deleteUser,
+    deleteUserMany
 }
