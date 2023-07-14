@@ -1,15 +1,11 @@
-import Cryptr from "cryptr";
-import bcrypt from 'bcryptjs'
-import db from "../models";
 import Service from "../service/CRUDService";
 import ServiceProd from "../service/CRUDProducts";
 import ServiceRoles from "../service/CRUDRoles";
 import JwtService from "../service/JwtService"
-import { Exception } from "sass";
 async function home(ref, res) {
     // var data = await db.Users.findAll();
-    const data = await Service.getListUsers();
-    res.render('home.ejs', { data: data });
+    // const data = await Service.getListUsers();
+    // res.render('home.ejs', { data: data });
 }
 async function createUser(ref, res) {
     try {
@@ -101,13 +97,14 @@ async function createUserAdmin(req, res) {
     else res.status(404).json({ message: 'khong phai tai khoan admin' })
 }
 async function deleteUser(req, res) {
+    const avatarFile = req.headers.avatarfile;
     try {
         if (req.body.access_token.roleid > 2) {
             throw {
                 message: 'khong phai admin'
             }
         }
-        res.status(200).json(await Service.deleteUser(req.params.id));
+        res.status(200).json(await Service.deleteUser(req.params.id, avatarFile));
     } catch (e) {
         res.status(404).json(e)
     }

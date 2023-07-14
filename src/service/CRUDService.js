@@ -1,7 +1,10 @@
 import bcrypt from 'bcryptjs';
+import fs from "node:fs/promises";
+import path from "node:path";
 import db from '../models';
 import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
+const avatarDirectory = path.join(__dirname, '../../public/avatar/')
 async function createUser(objData) {
     return new Promise(async (resolve, reject) => {
         //check user da ton tai trong database
@@ -75,11 +78,11 @@ async function createUserAdmin(objData, { roleid }) {
             if (checkAvailableUser == '') {
                 if (objData.password == objData.confirmPassword) {
                     if (roleid <= objData.roleid) {
-                        db.Users.create({
+                        let user = await db.Users.create({
                             name: objData.name,
                             email: objData.email,
                             password: await hashPassword(objData.password),
-                            avatar: '',
+                            avatar: objData.avatar,
                             adress: objData.address + ' ' + objData.city,
                             roleid: objData.roleid
                         })
@@ -88,6 +91,7 @@ async function createUserAdmin(objData, { roleid }) {
                             name: objData.name,
                             email: objData.email,
                             address: objData.address,
+                            avatar: objData.avatar,
                             message: 'User created'
                         })
                     }
@@ -186,7 +190,7 @@ async function updateUser(id, data) {
         }
     })
 }
-async function deleteUser(id) {
+async function deleteUser(id, avatarFile) {
     return new Promise(async (resolve, reject) => {
         const data = await db.Users.destroy({
             where: {
@@ -194,6 +198,7 @@ async function deleteUser(id) {
             }
         })
         if (data) {
+            fs.unlink(path.join(avatarDirectory, avatarFile));
             resolve({
                 status: 200,
                 message: 'delete successfully'
