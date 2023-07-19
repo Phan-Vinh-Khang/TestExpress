@@ -214,13 +214,12 @@ async function deleteUser(id, avatarFile) {
 }
 async function deleteUserMany(listId) {
     return new Promise(async (resolve, reject) => {
-        console.log('listId', listId)
         const data = await db.Users.findAll({
             where: {
                 id: listId //ref vào dc arr,ko can su dung map()
-            }
+            },
+            attributes: ['avatar']
         })
-        console.log('data', data.length)
         if (data.length != listId.length) {
             return reject({
                 status: '',
@@ -231,6 +230,10 @@ async function deleteUserMany(listId) {
             where: {
                 id: listId //ref vào dc arr,ko can su dung map()
             }
+        })
+        data.map((item) => {
+            if (item.avatar)
+                fs.unlink(path.join(avatarDirectory, item.avatar));
         })
         resolve({
             status: 200,

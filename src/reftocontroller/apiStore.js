@@ -32,8 +32,7 @@ function Reftocontroller_Store(app) {
     Rounter.post('/create-user-admin', checkController.checkToken, storeController.createUserAdmin)
     Rounter.post('/uploadAvatar', (req, res) => {
         uploadAvatar(req, res, (e) => {
-            if (e)
-                console.log(e)
+            if (e) console.log('aaaaaw', e)
             res.status(200).json({
                 status: 200,
                 message: 'uploaded avatar: ' + req.file.originalname
