@@ -27,7 +27,10 @@ async function detailProduct(idProd) {
 async function allProduct() {
     return new Promise(async (resolve, reject) => {
         let listProduct = await db.Products.findAll();
-        resolve(listProduct)
+        resolve({
+            status: 200,
+            listProduct
+        })
     })
 }
 async function updateProduct(data, id) {
@@ -63,15 +66,15 @@ async function updateProduct(data, id) {
 }
 async function allTypeProduct() {
     return new Promise(async (resolve, reject) => {
-        const dataTypeProd = db.TypeProducts.findAll()
-        if (dataTypeProd)
+        const listTypeProd = await db.TypeProducts.findAll();
+        if (listTypeProd)
             resolve({
                 status: 200,
-                dataTypeProd
+                listTypeProd
             })
         else reject({
             status: '',
-            message: 'khong tim thay dataType'
+            message: 'khong tim thay du lieu'
         })
     });
 }

@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import fs from "node:fs/promises";
 import path from "node:path";
 import db from '../models';
+const { Op } = require("sequelize");
 import { generalAccessToken, generalReAccessToken } from './JwtService'
 const salt = bcrypt.genSaltSync(10);
 const avatarDirectory = path.join(__dirname, '../../public/avatar/')
@@ -82,7 +83,7 @@ async function createUserAdmin(objData, { roleid }) {
                             name: objData.name,
                             email: objData.email,
                             password: await hashPassword(objData.password),
-                            avatar: objData.avatar,
+                            avatar: objData.imgName,
                             adress: objData.address + ' ' + objData.city,
                             roleid: objData.roleid
                         })
@@ -91,7 +92,7 @@ async function createUserAdmin(objData, { roleid }) {
                             name: objData.name,
                             email: objData.email,
                             address: objData.address,
-                            avatar: objData.avatar,
+                            avatar: objData.imgName,
                             message: 'User created'
                         })
                     }
@@ -148,7 +149,10 @@ async function updateUser(id, data) {
         })
         let checkDataEmailExist = await db.Users.findOne({
             where: {
-                email: data.email
+                email: data.email,
+                id: {
+                    [Op.ne]: id
+                }
             }
         })
         if (!user) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
@@ -170,10 +174,15 @@ async function updateUser(id, data) {
 
             })
         }
+        console.log(user, data)
         if (!checkDataEmailExist) {
             user.name = data.name
-            user.email = data.email
-            user.avatar = data.avatar
+            if (data.imgName) {
+                if (user.avatar) {
+                    fs.unlink(path.join(avatarDirectory, user.avatar));
+                }
+                user.avatar = data.imgName
+            }
             user.adress = data.adress
             user.roleid = data.roleid
             await user.save();
@@ -198,7 +207,9 @@ async function deleteUser(id, avatarFile) {
             }
         })
         if (data) {
-            fs.unlink(path.join(avatarDirectory, avatarFile));
+            if (avatarFile) {
+                fs.unlink(path.join(avatarDirectory, avatarFile));
+            }
             resolve({
                 status: 200,
                 message: 'delete successfully'
