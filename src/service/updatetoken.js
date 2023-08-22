@@ -1,0 +1,2 @@
+//có thể route thẳng đến func này check token,nếu có req.data(req.data!=undefine) thì neu token correct thì next
+            //nếu k có req.data thì return về client du correct token hay ko,sau đó nếu dung token thì client req,con k thi refresh token sau do req

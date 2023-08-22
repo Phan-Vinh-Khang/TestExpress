@@ -1,19 +1,41 @@
 import db from '../models';
 async function createProduct(data) {
-    let product = await db.Products.create({
-        name: data.name,
-        price: data.price,
-        discount: data.discount,
-        des: data.des,
-        image: data.image,
-        quantity: data.quantity,
-        typeprodid: data.typeprodid
+    return new Promise(async (resolve, reject) => {
+        if (!data.name || !data.price || !data.quantity) {
+            return reject({
+                status: '',
+                message: 'phai dien thong tin san pham'
+            })
+        }
+        let checkTypeExist = await db.TypeProducts.findOne({
+            where: {
+                id: data.typeprodid
+            }
+        })
+        if (checkTypeExist) {
+            let product = await db.Products.create({
+                name: data.name,
+                price: data.price,
+                discount: data.discount,
+                des: data.des,
+                image: data.imgName,
+                quantity: data.quantity,
+                typeprodid: data.typeprodid
+            })
+            return resolve({
+                status: 200,
+                product,
+                message: 'ok'
+            })
+        }
+        else {
+            reject({
+                status: '',
+                message: 'typeid khong ton tai'
+            })
+        }
+
     })
-    return {
-        status: 200,
-        product,
-        message: 'ok'
-    }
 }
 async function detailProduct(idProd) {
     const prod = await db.Products.findOne({
@@ -78,11 +100,62 @@ async function allTypeProduct() {
         })
     });
 }
+async function deleteProduct(id) {
+    return new Promise(async (resolve, reject) => {
+        let idDeleted = await db.Products.destroy({
+            where: {
+                id: id
+            }
+        })
+        if (idDeleted) {
+            return resolve({
+                status: 200,
+                message: 'ok'
+            })
+        }
+        reject({
+            status: '',
+            message: 'khong tim thay id'
+        })
+    })
+}
+async function deleteProductMany(listId) {
+    return new Promise(async (resolve, reject) => {
+        const data = await db.Products.findAll({
+            where: {
+                id: listId //ref vào dc arr,ko can su dung map()
+            },
+            attributes: ['image']
+        })
+        if (data.length != listId.length) {
+            return reject({
+                status: '',
+                message: 'id user dc chon khong ton tai'
+            })
+        }
+        await db.Products.destroy({
+            where: {
+                id: listId //ref vào dc arr,ko can su dung map()
+            }
+        })
+        data.map((item) => {
+            if (item.image)
+                fs.unlink(path.join(avatarDirectory, item.avatar));
+        })
+        resolve({
+            status: 200,
+            message: 'delete successfully ' + listId.length + ' users'
+        })
+
+    })
+}
 module.exports = {
     createProduct,
     updateProduct,
     detailProduct,
     allProduct,
-    allTypeProduct
+    allTypeProduct,
+    deleteProduct,
+    deleteProductMany
 
 }

@@ -7,16 +7,21 @@ async function home(ref, res) {
     // const data = await Service.getListUsers();
     // res.render('home.ejs', { data: data });
 }
-async function createUser(ref, res) {
+async function createUser(req, res) {
     try {
-        res.status(200).json(await Service.createUser(ref.body))
+        res.status(200).json(await Service.createUser(req.body))
     }
     catch (e) {
         res.status(409).json(e)
     }
 }
-async function createProduct(ref, res) {
-    res.status(200).json(await ServiceProd.createProduct(ref.body))
+async function createProduct(req, res) {
+    try {
+        res.status(200).json(await ServiceProd.createProduct(req.body.data));
+    }
+    catch (e) {
+        res.status(409).json(e);
+    }
 }
 async function detailProduct(req, res) {
     res.status(200).json(await ServiceProd.detailProduct(req.params.id))
@@ -24,31 +29,31 @@ async function detailProduct(req, res) {
 async function allProduct(req, res) {
     res.status(200).json(await ServiceProd.allProduct())
 }
-async function updateProduct(ref, res) {
+async function updateProduct(req, res) {
     try {
-        res.status(200).json(await ServiceProd.updateProduct(ref.body, ref.params.id))
+        res.status(200).json(await ServiceProd.updateProduct(req.body, req.params.id))
     } catch (e) {
         res.status(404).json(e)
     }
 }
-async function allTypeProduct(ref, res) {
+async function allTypeProduct(req, res) {
     try {
         res.status(200).json(await ServiceProd.allTypeProduct())
     } catch (e) {
         res.status(404).json(e)
     }
 }
-async function createRole(ref, res) {
+async function createRole(req, res) {
     try {
-        res.status(200).json(await ServiceRoles.createRole(ref.body));
+        res.status(200).json(await ServiceRoles.createRole(req.body));
 
     } catch (e) {
         res.status(409).json(e);
     }
 }
-async function checkUserLogin(ref, res) {
+async function checkUserLogin(req, res) {
     try {
-        const data = ref.body;
+        const data = req.body;
         res.status(200).json(await Service.checkUserLogin(data, res))
     } catch (e) {
         res.status(409).json(e)
@@ -117,6 +122,31 @@ async function deleteUserMany(req, res) {
             }
         }
         res.status(200).json(await Service.deleteUserMany(req.body.listId));
+    } catch (e) {
+        res.status(404).json(e)
+    }
+}
+async function deleteProduct(req, res) {
+    const avatarFile = req.headers.avatarfile;
+    try {
+        if (req.body.access_token.roleid > 2) {
+            throw {
+                message: 'khong phai admin'
+            }
+        }
+        res.status(200).json(await ServiceProd.deleteProduct(req.params.id, avatarFile));
+    } catch (e) {
+        res.status(404).json(e)
+    }
+}
+async function deleteProductMany(req, res) {
+    try {
+        if (req.body.access_token.roleid > 2) {
+            throw {
+                message: 'khong phai admin'
+            }
+        }
+        res.status(200).json(await ServiceProd.deleteProductMany(req.body.listId));
     } catch (e) {
         res.status(404).json(e)
     }
@@ -194,5 +224,7 @@ module.exports = {
     allRole,
     updateUser,
     deleteUser,
-    deleteUserMany
+    deleteUserMany,
+    deleteProduct,
+    deleteProductMany
 }

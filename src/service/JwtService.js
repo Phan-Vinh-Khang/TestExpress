@@ -4,7 +4,7 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'ACCESS_TOKEN';
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN || 'REFRESH_TOKEN';
 const generalAccessToken = async (data) => { //return về 1 chuỗi mã hóa của data
     //Short term token
-    return jwt.sign(data, ACCESS_TOKEN, { expiresIn: '5h' })
+    return jwt.sign(data, ACCESS_TOKEN, { expiresIn: '30s' })
 }
 //các para lần lượt: data(data này sẽ dc mã hóa khi gửi về client),secretkey,thời gian hết hạn
 const generalReAccessToken = async (data) => {
@@ -15,10 +15,12 @@ const checkToken = (req, res, next) => {//check access token
     jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
         if (!err) {
             req.body.access_token = data;//them 1 var properties access_token vao obj body
-            next()
+            next();//có thể route thẳng đến func này(ko can func checktoken2) check token,nếu có req.data(req.data!=undefine) thì neu token correct thì next
+            //nếu k có req.data thì return về client du correct token hay ko,sau đó nếu dung token thì client req,con k thi refresh token sau do req
         }
         else {
             res.status(401).json({
+
                 status: 401,
                 message: 'access token expired or not correct '
             })

@@ -174,7 +174,6 @@ async function updateUser(id, data) {
 
             })
         }
-        console.log(user, data)
         if (!checkDataEmailExist) {
             user.name = data.name
             if (data.imgName) {

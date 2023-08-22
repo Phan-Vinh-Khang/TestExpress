@@ -13,7 +13,19 @@ const storage = multer.diskStorage({
         callback(null, file.originalname)
     }
 })
+const storageImgProd = multer.diskStorage({
+    //sau khi function diskStorage return về các data sẽ call 2 func này và truyen doi so vao
+    //func diskStorage sẽ truyen 2 data và 1 datastatic func vào doi so
+    destination: (req, file, callback) => { //varfunc callback sẽ ref vào doi so datastatic func và dev sẽ su dung varfunc callback de gọi den func mà funcdisk truyen vao
+        callback(null, path.join(__dirname, '../../', 'public/img/products'))
+    },
+    filename: (req, file, callback) => {
+        callback(null, file.originalname)
+    }
+})
 const uploadAvatar = multer({ storage: storage }).single('avatar') //set noi luu file
+const uploadImgProd = multer({ storage: storageImgProd }).single('imgProd') //set noi luu file
+
 //sử dụng module.export obj khi import sẽ sử dụng var để ref vào obj 
 var Rounter = Express.Router()
 function Reftocontroller_Store(app) {
@@ -39,8 +51,19 @@ function Reftocontroller_Store(app) {
             })
         });
     })
+    Rounter.post('/uploadImgProd', (req, res) => {
+        uploadImgProd(req, res, (e) => {
+            if (e) console.log(e)
+            res.status(200).json({
+                status: 200,
+                message: 'uploaded img prod: ' + req.file.originalname
+            })
+        });
+    })
     Rounter.post('/delete-user/:id', checkController.checkToken, storeController.deleteUser)
     Rounter.post('/delete-user-many/', checkController.checkToken, storeController.deleteUserMany)
+    Rounter.post('/delete-product/:id', checkController.checkToken, storeController.deleteProduct)
+    Rounter.post('/delete-product-many/', checkController.checkToken, storeController.deleteProductMany)
     Rounter.put('/update-user/:id', checkController.checkToken, storeController.updateUser)
     Rounter.put('/update-product/:id', storeController.updateProduct)
     Rounter.post('/create-role', storeController.createRole);
