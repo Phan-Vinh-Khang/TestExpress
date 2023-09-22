@@ -2,6 +2,7 @@ import Service from "../service/CRUDService";
 import ServiceProd from "../service/CRUDProducts";
 import ServiceRoles from "../service/CRUDRoles";
 import JwtService from "../service/JwtService"
+import db from '../models';
 async function home(ref, res) {
     // var data = await db.Users.findAll();
     // const data = await Service.getListUsers();
@@ -30,10 +31,21 @@ async function allProduct(req, res) {
     res.status(200).json(await ServiceProd.allProduct())
 }
 async function updateProduct(req, res) {
+    const authorization = await db.Products.findOne({
+        where: {
+            userCreatedId: req.body.access_token.id
+        }
+    })
     try {
+        if (req.body.access_token.roleid > 2 && authorization == null) {
+            throw {
+                status: 409,
+                message: 'khong the update san pham cua user khac, ban khong phai admin'
+            }
+        }
         res.status(200).json(await ServiceProd.updateProduct(req.body, req.params.id))
     } catch (e) {
-        res.status(404).json(e)
+        res.status(409).json(e)
     }
 }
 async function allTypeProduct(req, res) {
@@ -92,21 +104,19 @@ async function updateUser(req, res) {
     else res.status(404).json({ message: 'khong phai admin hoac ban dang sua thong tin cua nguoi khac' })
 }
 async function createUserAdmin(req, res) {
-    if (req.body.access_token.roleid < 3) {
-        try {
-            res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
-        } catch (e) {
-            res.status(409).json(e);
-        }
+    try {
+        res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
+    } catch (e) {
+        res.status(409).json(e);
     }
-    else res.status(404).json({ message: 'khong phai tai khoan admin' })
 }
 async function deleteUser(req, res) {
     const avatarFile = req.headers.avatarfile;
     try {
-        if (req.body.access_token.roleid > 2) {
+        if (req.body.access_token.id != req.params.id && req.body.roleid > 2) {
             throw {
-                message: 'khong phai admin'
+                statis: '409',
+                message: 'khong phai admin,ban khong the xoa tai khoan cua user khac'
             }
         }
         res.status(200).json(await Service.deleteUser(req.params.id, avatarFile));
@@ -127,35 +137,48 @@ async function deleteUserMany(req, res) {
     }
 }
 async function deleteProduct(req, res) {
-    const avatarFile = req.headers.avatarfile;
+    const authorization = await db.Products.findOne({
+        where: {
+            id: req.params.id,
+            userCreatedId: req.body.access_token.id
+        },
+    })
     try {
-        if (req.body.access_token.roleid > 2) {
+        if (req.body.access_token.roleid > 2 && authorization == null) {
             throw {
-                message: 'khong phai admin'
+                status: '409',
+                message: 'khong the xoa san pham cua nguoi khac hoac ban khong phai admin'
             }
         }
-        res.status(200).json(await ServiceProd.deleteProduct(req.params.id, avatarFile));
+        res.status(200).json(await ServiceProd.deleteProduct(req.params.id));
     } catch (e) {
-        res.status(404).json(e)
+        res.status(409).json(e);
     }
 }
 async function deleteProductMany(req, res) {
+    const authorization = await db.Products.findAll({
+        where: {
+            id: req.body.listId,
+            userCreatedId: req.body.access_token.id
+        },
+    })
     try {
-        if (req.body.access_token.roleid > 2) {
+        if (req.body.access_token.roleid > 2 && authorization.length != req.body.listId.length) {
             throw {
-                message: 'khong phai admin'
+                status: '409',
+                message: 'khong the xoa san pham cua nguoi khac hoac ban khong phai admin'
             }
         }
         res.status(200).json(await ServiceProd.deleteProductMany(req.body.listId));
     } catch (e) {
-        res.status(404).json(e)
+        res.status(409).json(e)
     }
 }
 async function authenticationUser(req, res) {
     try {
         res.status(200).json(await Service.authenticationUser(req.body.access_token.id));
     } catch (e) {
-        res.status(404).json({ message: 'ko tim thay id user' })
+        res.status(404).json(e)
     }
 }
 async function logoutUser(req, res) {

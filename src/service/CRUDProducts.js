@@ -1,4 +1,7 @@
 import db from '../models';
+import fs from "node:fs/promises";
+import path from "node:path";
+const imageProdDirectory = path.join(__dirname, '../../public/img/products')
 async function createProduct(data) {
     return new Promise(async (resolve, reject) => {
         if (!data.name || !data.price || !data.quantity) {
@@ -102,12 +105,20 @@ async function allTypeProduct() {
 }
 async function deleteProduct(id) {
     return new Promise(async (resolve, reject) => {
-        let idDeleted = await db.Products.destroy({
+        let isDeleted = await db.Products.destroy({
             where: {
                 id: id
             }
         })
-        if (idDeleted) {
+        if (isDeleted) {
+            const product = await db.Products.findOne({
+                where: {
+                    id: id
+                }
+            })
+            if (product.image != '') {
+                fs.unlink(path.join(imageProdDirectory, product.image));
+            }
             return resolve({
                 status: 200,
                 message: 'ok'
@@ -121,7 +132,7 @@ async function deleteProduct(id) {
 }
 async function deleteProductMany(listId) {
     return new Promise(async (resolve, reject) => {
-        const data = await db.Products.findAll({
+        const products = await db.Products.findAll({
             where: {
                 id: listId //ref vào dc arr,ko can su dung map()
             },
@@ -130,7 +141,7 @@ async function deleteProductMany(listId) {
         if (data.length != listId.length) {
             return reject({
                 status: '',
-                message: 'id user dc chon khong ton tai'
+                message: 'các id product dc chon khong ton tai'
             })
         }
         await db.Products.destroy({
@@ -138,13 +149,13 @@ async function deleteProductMany(listId) {
                 id: listId //ref vào dc arr,ko can su dung map()
             }
         })
-        data.map((item) => {
+        products.map((item) => {
             if (item.image)
-                fs.unlink(path.join(avatarDirectory, item.avatar));
+                fs.unlink(path.join(imageProdDirectory, item.image));
         })
         resolve({
             status: 200,
-            message: 'delete successfully ' + listId.length + ' users'
+            message: 'delete successfully ' + listId.length + ' products'
         })
 
     })
@@ -157,5 +168,4 @@ module.exports = {
     allTypeProduct,
     deleteProduct,
     deleteProductMany
-
 }

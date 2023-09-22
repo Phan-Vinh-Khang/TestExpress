@@ -14,14 +14,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeConstraint('Products', {
-      fields: ['typeprodid'],
-      type: 'foreign key',
-      name: 'product-typeprod-association',
-      references: {
-        table: 'TypeProducts',
-        field: 'id'
-      }
-    })
+    await queryInterface.removeConstraint('Products', 'product-typeprod-association')
   }
 };

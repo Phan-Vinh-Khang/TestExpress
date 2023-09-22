@@ -12,7 +12,8 @@ const generalReAccessToken = async (data) => {
     return jwt.sign(data, REFRESH_TOKEN, { expiresIn: '999d' })
 }
 const checkToken = (req, res, next) => {//check access token
-    jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
+    const token = req.headers.authorization.split(" ")[1];
+    jwt.verify(token, ACCESS_TOKEN, (err, data) => {
         if (!err) {
             req.body.access_token = data;//them 1 var properties access_token vao obj body
             next();//có thể route thẳng đến func này(ko can func checktoken2) check token,nếu có req.data(req.data!=undefine) thì neu token correct thì next
@@ -20,7 +21,6 @@ const checkToken = (req, res, next) => {//check access token
         }
         else {
             res.status(401).json({
-
                 status: 401,
                 message: 'access token expired or not correct '
             })
@@ -28,7 +28,8 @@ const checkToken = (req, res, next) => {//check access token
     })
 }
 const checkToken2 = (req, res, next) => {
-    jwt.verify(req.body.access_token, ACCESS_TOKEN, (err, data) => {
+    const token = req.headers.authorization.split(" ")[1];
+    jwt.verify(token, ACCESS_TOKEN, (err, data) => {
         if (err) {
             res.status(498).json({
                 status: 498,

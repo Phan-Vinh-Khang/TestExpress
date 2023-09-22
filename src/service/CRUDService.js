@@ -105,7 +105,7 @@ async function createUserAdmin(objData, { roleid }) {
                     else {
                         return reject({
                             staus: 403,
-                            message: 'unthorization'
+                            message: 'unthorization,chỉ có thể đăng ký tài khoản với quyền thấp hơn tài khoản hiện tại'
                         })
                     }
                 }
@@ -140,7 +140,23 @@ async function getUsers(idUser) {
     //return arr và arr[0] sẽ là obj table với các properties và func của obj table đó
     //nếu có raw sẽ chỉ return về data obj table, sẽ ko có các func của table trong obj đó nên sẽ ko sủ dụng func save() và các func khác dc
 }
+function preHandleUpdateData(data) {
+    if (data.iscollab.toLowerCase() == 'có')
+        data.iscollab = 1
+    else if (data.iscollab.toLowerCase() == 'không')
+        data.iscollab = 0
+}
 async function updateUser(id, data) {
+    const listRole = await db.Roles.findAll();
+    let role = listRole.find((item) => {
+        return item.name == data.roleid
+    })
+    if (!role) {
+        role = {}
+        role.id = -1;
+    }
+    data.roleid = role.id;
+    preHandleUpdateData(data)
     return new Promise(async (resolve, reject) => {
         let user = await db.Users.findOne({
             where: {
@@ -174,6 +190,13 @@ async function updateUser(id, data) {
 
             })
         }
+        if (data.iscollab != 0 && data.iscollab != 1) {
+            return reject({
+                status: 422,
+                message: 'iscollab khong hop le'
+
+            })
+        }
         if (!checkDataEmailExist) {
             user.name = data.name
             if (data.imgName) {
@@ -184,6 +207,7 @@ async function updateUser(id, data) {
             }
             user.adress = data.adress
             user.roleid = data.roleid
+            user.iscollab = data.iscollab
             await user.save();
             resolve({
                 status: 200,
@@ -198,16 +222,21 @@ async function updateUser(id, data) {
         }
     })
 }
-async function deleteUser(id, avatarFile) {
+async function deleteUser(id) {
     return new Promise(async (resolve, reject) => {
-        const data = await db.Users.destroy({
+        const user = await db.Users.findOne({
             where: {
                 id: id
             }
         })
-        if (data) {
-            if (avatarFile) {
-                fs.unlink(path.join(avatarDirectory, avatarFile));
+        const isDeleted = await db.Users.destroy({
+            where: {
+                id: id
+            }
+        })
+        if (isDeleted) {
+            if (user.avatar != '') {
+                fs.unlink(path.join(avatarDirectory, user.avatar));
             }
             resolve({
                 status: 200,
@@ -241,9 +270,9 @@ async function deleteUserMany(listId) {
                 id: listId //ref vào dc arr,ko can su dung map()
             }
         })
-        data.map((item) => {
-            if (item.avatar)
-                fs.unlink(path.join(avatarDirectory, item.avatar));
+        data.map(({ avatar }) => {
+            if (avatar)
+                fs.unlink(path.join(avatarDirectory, avatar));
         })
         resolve({
             status: 200,
@@ -326,7 +355,18 @@ async function detailUser(userId) {
 async function allUser() {
     return new Promise(async (resolve, reject) => {
         try {
-            const user = await db.Users.findAll({ attributes: { exclude: ['password',] }, })
+            const user = await db.Users.findAll({
+                attributes: { exclude: ['password',] },
+                include: {
+                    model: db.Roles,
+                    as: 'role'
+                }
+            })
+            user.map((item) => {
+                item.iscollab == true ? item.iscollab = 'Có' : item.iscollab = 'Không'
+                item.roleid = item.role.name;
+                delete item.dataValues.role;//delete propertie role truoc khi response ve client
+            })
             resolve({
                 status: 200,
                 listUser: user
@@ -370,7 +410,10 @@ async function authenticationUser(userId) {
                 user: user2
             })
         }
-        else reject()
+        else reject({
+            status: '409',
+            message: 'khong tim thay user'
+        })
     })
 }
 module.exports = {

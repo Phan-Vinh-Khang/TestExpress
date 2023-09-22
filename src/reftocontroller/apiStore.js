@@ -35,15 +35,14 @@ function Reftocontroller_Store(app) {
     Rounter.get('/all-product', storeController.allProduct)
     Rounter.get('/detail-product/:id', storeController.detailProduct)
     Rounter.get('/detail-user/:id', storeController.detailUser)
-    Rounter.post('/authentication-user', checkController.checkToken, storeController.authenticationUser)
+    Rounter.get('/authentication-user', checkController.checkToken, storeController.authenticationUser)
     Rounter.get('/logout-user', storeController.logoutUser)
     Rounter.get('/all-type-product', storeController.allTypeProduct)
     Rounter.get('/all-user', storeController.allUser)
     Rounter.get('/all-role', storeController.allRole)
-
-    Rounter.post('/create-user-admin', checkController.checkToken, storeController.createUserAdmin)
-    Rounter.post('/uploadAvatar', (req, res) => {
-        uploadAvatar(req, res, (e) => {
+    Rounter.post('/create-user-admin', checkController.checkToken, storeController.createUserAdmin,)
+    Rounter.post('/uploadAvatar', async (req, res) => {
+        await uploadAvatar(req, res, (e) => {
             if (e) console.log(e)
             res.status(200).json({
                 status: 200,
@@ -60,9 +59,9 @@ function Reftocontroller_Store(app) {
             })
         });
     })
-    Rounter.post('/delete-user/:id', checkController.checkToken, storeController.deleteUser)
+    Rounter.get('/delete-user/:id', checkController.checkToken, storeController.deleteUser)
     Rounter.post('/delete-user-many/', checkController.checkToken, storeController.deleteUserMany)
-    Rounter.post('/delete-product/:id', checkController.checkToken, storeController.deleteProduct)
+    Rounter.get('/delete-product/:id', checkController.checkToken, storeController.deleteProduct)
     Rounter.post('/delete-product-many/', checkController.checkToken, storeController.deleteProductMany)
     Rounter.put('/update-user/:id', checkController.checkToken, storeController.updateUser)
     Rounter.put('/update-product/:id', storeController.updateProduct)
