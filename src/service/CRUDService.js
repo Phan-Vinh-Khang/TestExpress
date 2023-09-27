@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import fs from "node:fs/promises";
+import fs from "fs";
 import path from "node:path";
 import db from '../models';
 const { Op } = require("sequelize");
@@ -21,7 +21,7 @@ async function createUser(objData) {
                         name: objData.name,
                         email: objData.email,
                         password: await hashPassword(objData.password),
-                        avatar: '',
+                        image: '',
                         adress: objData.address + ' ' + objData.city,
                         roleid: 3
                     })
@@ -79,20 +79,16 @@ async function createUserAdmin(objData, { roleid }) {
             if (checkAvailableUser == '') {
                 if (objData.password == objData.confirmPassword) {
                     if (roleid <= objData.roleid) {
-                        let user = await db.Users.create({
+                        await db.Users.create({
                             name: objData.name,
                             email: objData.email,
                             password: await hashPassword(objData.password),
-                            avatar: objData.imgName,
+                            image: objData.fileNameUid,
                             adress: objData.address + ' ' + objData.city,
                             roleid: objData.roleid
                         })
                         return resolve({
                             status: 200,
-                            name: objData.name,
-                            email: objData.email,
-                            address: objData.address,
-                            avatar: objData.imgName,
                             message: 'User created'
                         })
                     }
@@ -147,96 +143,62 @@ function preHandleUpdateData(data) {
         data.iscollab = 0
 }
 async function updateUser(id, data) {
+    console.log(data)
     const listRole = await db.Roles.findAll();
     let role = listRole.find((item) => {
         return item.name == data.roleid
     })
     if (!role) {
-        role = {}
-        role.id = -1;
+        throw {
+            status: 422,
+            message: 'roleid không hợp lệ'
+        }
     }
     data.roleid = role.id;
     preHandleUpdateData(data)
-    return new Promise(async (resolve, reject) => {
-        let user = await db.Users.findOne({
-            where: {
-                id: id
-            }
-        })
-        let checkDataEmailExist = await db.Users.findOne({
-            where: {
-                email: data.email,
-                id: {
-                    [Op.ne]: id
-                }
-            }
-        })
-        if (!user) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
-            return reject({
-                status: 422,
-                message: 'khong tim thay user'
+    let user = await db.Users.findByPk(id)
+    if (!user) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
+        throw {
+            status: 422,
+            message: 'không tìm thấy user'
 
-            })
         }
-        let checkroleid = await db.Roles.findOne({
-            where: {
-                id: data.roleid
-            }
-        })
-        if (!checkroleid) { //neu vao dc day la admin,gan nhu se k can check user tru khi admin ko dung req o web client
-            return reject({//su dung return neu ko van se tiep tuc chay
-                status: 422,
-                message: 'khong tim thay roleid'
+    }
+    if (data.iscollab != 0 && data.iscollab != 1) {
+        throw {
+            status: 422,
+            message: 'iscollab không hợp lệ'
 
-            })
         }
-        if (data.iscollab != 0 && data.iscollab != 1) {
-            return reject({
-                status: 422,
-                message: 'iscollab khong hop le'
-
-            })
+    }
+    if (data.fileNameUid) { //undefine err
+        const filePath = path.join(avatarDirectory, user.image);
+        if (user.image) {
+            fs.unlinkSync(filePath);
         }
-        if (!checkDataEmailExist) {
-            user.name = data.name
-            if (data.imgName) {
-                if (user.avatar) {
-                    fs.unlink(path.join(avatarDirectory, user.avatar));
-                }
-                user.avatar = data.imgName
-            }
-            user.adress = data.adress
-            user.roleid = data.roleid
-            user.iscollab = data.iscollab
-            await user.save();
-            resolve({
-                status: 200,
-                message: 'update ok'
-            })
-        }
-        else {
-            reject({
-                status: 409,
-                message: 'email đã tồn tại'
-            })
-        }
-    })
+        user.image = data.fileNameUid
+    }
+    user.name = data.name
+    user.adress = data.adress
+    user.roleid = data.roleid
+    user.iscollab = data.iscollab
+    await user.save();
+    return {
+        status: 200,
+        message: 'updated'
+    }
 }
 async function deleteUser(id) {
     return new Promise(async (resolve, reject) => {
-        const user = await db.Users.findOne({
-            where: {
-                id: id
-            }
-        })
+        const user = await db.Users.findByPk(id)
         const isDeleted = await db.Users.destroy({
             where: {
                 id: id
             }
         })
         if (isDeleted) {
-            if (user.avatar != '') {
-                fs.unlink(path.join(avatarDirectory, user.avatar));
+            if (user.image) {
+                fs.unlinkSync(path.join(avatarDirectory, user.image));
             }
             resolve({
                 status: 200,
@@ -252,34 +214,34 @@ async function deleteUser(id) {
     })
 }
 async function deleteUserMany(listId) {
-    return new Promise(async (resolve, reject) => {
-        const data = await db.Users.findAll({
-            where: {
-                id: listId //ref vào dc arr,ko can su dung map()
-            },
-            attributes: ['avatar']
-        })
-        if (data.length != listId.length) {
-            return reject({
-                status: '',
-                message: 'id user dc chon khong ton tai'
-            })
-        }
-        await db.Users.destroy({
-            where: {
-                id: listId //ref vào dc arr,ko can su dung map()
-            }
-        })
-        data.map(({ avatar }) => {
-            if (avatar)
-                fs.unlink(path.join(avatarDirectory, avatar));
-        })
-        resolve({
-            status: 200,
-            message: 'delete successfully ' + listId.length + ' users'
-        })
-
+    const data = await db.Users.findAll({
+        where: {
+            id: listId //ref vào dc arr,ko can su dung map()
+        },
+        attributes: ['image']
     })
+    if (data.length != listId.length) {
+        throw {
+            status: '',
+            message: 'id user dc chon khong ton tai'
+        }
+    }
+    await db.Users.destroy({
+        where: {
+            id: listId //ref vào dc arr,ko can su dung map()
+        }
+    })
+    data.map(({ image }) => {
+        const filePath = path.join(avatarDirectory, image);
+        console.log('image', image)
+        if (image) {
+            fs.unlinkSync(filePath);
+        }
+    })
+    return {
+        status: 200,
+        message: 'delete successfully ' + listId.length + ' users'
+    }
 }
 async function removeUserAction(data) {
     await db.Users.destroy({
@@ -340,11 +302,7 @@ async function checkUserLogin(data, res) {
 }
 async function detailUser(userId) {
     return new Promise(async (resolve, reject) => {
-        const user = await db.Users.findOne({
-            where: {
-                id: userId
-            }
-        })
+        const user = await db.Users.findByPk(userId)
         if (user) {
             const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
             resolve(user2)
@@ -363,9 +321,19 @@ async function allUser() {
                 }
             })
             user.map((item) => {
+
                 item.iscollab == true ? item.iscollab = 'Có' : item.iscollab = 'Không'
                 item.roleid = item.role.name;
                 delete item.dataValues.role;//delete propertie role truoc khi response ve client
+
+                let createdAt = new Date(item.createdAt);
+                let localCreateAt = new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000 + 7 * 60 * 60 * 1000);
+                let formattedCreateAt = localCreateAt.toLocaleString('en-US', { month: 'numeric', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                let updatedAt = new Date(item.updatedAt);
+                let localUpdateAt = new Date(updatedAt.getTime() + updatedAt.getTimezoneOffset() * 60 * 1000 + 7 * 60 * 60 * 1000);
+                let formattedUpdateAt = localUpdateAt.toLocaleString('en-US', { month: 'numeric', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                item.dataValues.createdAt = formattedCreateAt
+                item.dataValues.updatedAt = formattedUpdateAt
             })
             resolve({
                 status: 200,
@@ -398,11 +366,7 @@ async function allRole() {
 }
 async function authenticationUser(userId) {
     return new Promise(async (resolve, reject) => {
-        const user = await db.Users.findOne({
-            where: {
-                id: userId
-            }
-        })
+        const user = await db.Users.findByPk(userId)
         if (user) {
             const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
             resolve({

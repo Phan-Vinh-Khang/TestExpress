@@ -1,43 +1,43 @@
 import db from '../models';
-import fs from "node:fs/promises";
-import path from "node:path";
-const imageProdDirectory = path.join(__dirname, '../../public/img/products')
-async function createProduct(data) {
-    return new Promise(async (resolve, reject) => {
-        if (!data.name || !data.price || !data.quantity) {
-            return reject({
-                status: '',
-                message: 'phai dien thong tin san pham'
-            })
+import fs from "fs";
+import path from "path";
+const imageProductDirectory = path.join(__dirname, '../../public/img/products/')
+async function createProduct(data, iduser) {
+    if (!data.name || !data.price || !data.quantity) {
+        throw {
+            status: '',
+            message: 'phai dien thong tin san pham'
         }
-        let checkTypeExist = await db.TypeProducts.findOne({
-            where: {
-                id: data.typeprodid
-            }
+    }
+    let checkTypeExist = await db.TypeProducts.findOne({
+        where: {
+            id: data.typeprodid
+        }
+    })
+    if (checkTypeExist) {
+        console.log(data)
+        await db.Products.create({
+            name: data.name,
+            price: data.price,
+            discount: data.discount,
+            des: data.des,
+            image: data.fileNameUid,
+            quantity: data.quantity,
+            typeprodid: data.typeprodid,
+            star: 0,
+            sold: 0,
+            usercreatedid: iduser,
+            usershopid: 2
+            //kiem tra user request có bao nhieu shop và shop gui den server co phai là 1 trong các shop của user đó hay ko
         })
-        if (checkTypeExist) {
-            let product = await db.Products.create({
-                name: data.name,
-                price: data.price,
-                discount: data.discount,
-                des: data.des,
-                image: data.imgName,
-                quantity: data.quantity,
-                typeprodid: data.typeprodid
-            })
-            return resolve({
-                status: 200,
-                product,
-                message: 'ok'
-            })
+        return {
+            status: 200,
+            message: 'created'
         }
-        else {
-            reject({
-                status: '',
-                message: 'typeid khong ton tai'
-            })
-        }
-
+    }
+    throw ({
+        status: '',
+        message: 'typeid khong ton tai',
     })
 }
 async function detailProduct(idProd) {
@@ -46,48 +46,72 @@ async function detailProduct(idProd) {
             id: idProd
         }
     })
-    console.log(prod.dataValues)
     return prod;
 }
 async function allProduct() {
-    return new Promise(async (resolve, reject) => {
-        let listProduct = await db.Products.findAll();
-        resolve({
-            status: 200,
-            listProduct
-        })
+    let listProduct = await db.Products.findAll({
+        include: {
+            model: db.TypeProducts,
+            as: 'detailTypeProd'
+        }
+    });
+    listProduct.map((item) => {
+        item.typeprodid = item.detailTypeProd.typeprodname
+        delete item.dataValues.detailTypeProd
+        let createdAt = new Date(item.createdAt);
+        let localCreateAt = new Date(createdAt.getTime() + createdAt.getTimezoneOffset() * 60 * 1000 + 7 * 60 * 60 * 1000);
+        let formattedCreateAt = localCreateAt.toLocaleString('en-US', { month: 'numeric', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        let updatedAt = new Date(item.updatedAt);
+        let localUpdateAt = new Date(updatedAt.getTime() + updatedAt.getTimezoneOffset() * 60 * 1000 + 7 * 60 * 60 * 1000);
+        let formattedUpdateAt = localUpdateAt.toLocaleString('en-US', { month: 'numeric', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        item.dataValues.createdAt = formattedCreateAt
+        item.dataValues.updatedAt = formattedUpdateAt
+
     })
+    return {
+        status: 200,
+        listProduct
+    }
 }
 async function updateProduct(data, id) {
-    return new Promise(async (resolve, reject) => {
-        let product = await db.Products.findOne({
-            where: {
-                id: id
-            }
-        })
-        if (!product) {
-            return reject({
-                status: '',
-                message: 'khong tim thay san pham'
-            })
+    const listTypeProduct = await db.TypeProducts.findAll()
+    let typeproduct = listTypeProduct.find((item) => {
+        return item.typeprodname == data.typeprodid
+    })
+    if (!typeproduct) {
+        throw {
+            status: '422',
+            message: 'type product không hợp lệ'
         }
-        product.name = data.name
-        product.price = data.price
-        product.discount = data.discount
-        product.des = data.des
-        product.image = data.image
-        product.quantity = data.quantity
-        product.typeprodid = data.typeprodid
-        product.save();
-        resolve(
-            {
-                status: 200,
-                message: 'product updated',
-                product
-            }
-        )
+    }
+    data.typeprodid = typeproduct.id
+    let product = await db.Products.findByPk(id)
+    if (!product) {
+        throw {
+            status: '',
+            message: 'không tìm thấy sản phẩm'
+        }
+    }
+    if (data.fileNameUid) {
+        if (product.image) {
+            const filePath = path.join(imageProductDirectory, product.image);
+            console.log('unlinkSync')
+            fs.unlinkSync(filePath);
+        }
+        product.image = data.fileNameUid
+    }
+    product.name = data.name
+    product.price = data.price
+    product.discount = data.discount
+    product.des = data.des
+    product.quantity = data.quantity
+    product.typeprodid = data.typeprodid
+    product.save();
+    return {
+        status: 200,
+        message: 'product updated'
+    }
 
-    });
 }
 async function allTypeProduct() {
     return new Promise(async (resolve, reject) => {
@@ -104,61 +128,57 @@ async function allTypeProduct() {
     });
 }
 async function deleteProduct(id) {
-    return new Promise(async (resolve, reject) => {
-        let isDeleted = await db.Products.destroy({
-            where: {
-                id: id
-            }
-        })
-        if (isDeleted) {
-            const product = await db.Products.findOne({
-                where: {
-                    id: id
-                }
-            })
-            if (product.image != '') {
-                fs.unlink(path.join(imageProdDirectory, product.image));
-            }
-            return resolve({
-                status: 200,
-                message: 'ok'
-            })
+    const product = await db.Products.findByPk(id)
+    let isDeleted = await db.Products.destroy({
+        where: {
+            id: id
         }
-        reject({
-            status: '',
-            message: 'khong tim thay id'
-        })
     })
+    if (isDeleted) {
+        if (product.image) {
+            const filePath = path.join(imageProductDirectory, product.image);
+            fs.unlinkSync(filePath);
+        }
+        return {
+            status: 200,
+            message: 'ok'
+        }
+    }
+    throw {
+        status: '',
+        message: 'khong tim thay id'
+    }
 }
 async function deleteProductMany(listId) {
-    return new Promise(async (resolve, reject) => {
-        const products = await db.Products.findAll({
-            where: {
-                id: listId //ref vào dc arr,ko can su dung map()
-            },
-            attributes: ['image']
-        })
-        if (data.length != listId.length) {
-            return reject({
-                status: '',
-                message: 'các id product dc chon khong ton tai'
-            })
-        }
-        await db.Products.destroy({
-            where: {
-                id: listId //ref vào dc arr,ko can su dung map()
-            }
-        })
-        products.map((item) => {
-            if (item.image)
-                fs.unlink(path.join(imageProdDirectory, item.image));
-        })
-        resolve({
-            status: 200,
-            message: 'delete successfully ' + listId.length + ' products'
-        })
-
+    console.log('list id: ', listId)
+    const productsImage = await db.Products.findAll({
+        where: {
+            id: listId //ref vào dc arr,ko can su dung map()
+        },
+        attributes: ['image']
     })
+    if (productsImage.length != listId.length) {
+        throw {
+            status: '',
+            message: 'các id product dc chon khong ton tai'
+        }
+    }
+    await db.Products.destroy({
+        where: {
+            id: listId //ref vào dc arr,ko can su dung map()
+        }
+    })
+    productsImage.map((item) => {
+        if (item.image) {
+            const filePath = path.join(imageProductDirectory, item.image);
+            fs.unlinkSync(filePath);
+        }
+    })
+    return {
+        status: 200,
+        message: 'delete successfully ' + listId.length + ' products'
+    }
+
 }
 module.exports = {
     createProduct,

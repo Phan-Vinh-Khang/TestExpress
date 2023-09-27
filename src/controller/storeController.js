@@ -18,7 +18,7 @@ async function createUser(req, res) {
 }
 async function createProduct(req, res) {
     try {
-        res.status(200).json(await ServiceProd.createProduct(req.body.data));
+        res.status(200).json(await ServiceProd.createProduct(req.body.data, req.body.access_token.id));
     }
     catch (e) {
         res.status(409).json(e);
@@ -111,7 +111,6 @@ async function createUserAdmin(req, res) {
     }
 }
 async function deleteUser(req, res) {
-    const avatarFile = req.headers.avatarfile;
     try {
         if (req.body.access_token.id != req.params.id && req.body.roleid > 2) {
             throw {
@@ -119,7 +118,7 @@ async function deleteUser(req, res) {
                 message: 'khong phai admin,ban khong the xoa tai khoan cua user khac'
             }
         }
-        res.status(200).json(await Service.deleteUser(req.params.id, avatarFile));
+        res.status(200).json(await Service.deleteUser(req.params.id));
     } catch (e) {
         res.status(404).json(e)
     }

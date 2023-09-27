@@ -23,8 +23,8 @@ const storageImgProd = multer.diskStorage({
         callback(null, file.originalname)
     }
 })
-const uploadAvatar = multer({ storage: storage }).single('avatar') //set noi luu file
-const uploadImgProd = multer({ storage: storageImgProd }).single('imgProd') //set noi luu file
+const uploadAvatar = multer({ storage: storage }).single('image') //set noi luu file
+const uploadImgProd = multer({ storage: storageImgProd }).single('image') //set noi luu file
 
 //sử dụng module.export obj khi import sẽ sử dụng var để ref vào obj 
 var Rounter = Express.Router()
@@ -46,7 +46,7 @@ function Reftocontroller_Store(app) {
             if (e) console.log(e)
             res.status(200).json({
                 status: 200,
-                message: 'uploaded avatar: ' + req.file.originalname
+                message: 'uploaded image: ' + req.file.originalname
             })
         });
     })
@@ -55,7 +55,7 @@ function Reftocontroller_Store(app) {
             if (e) console.log(e)
             res.status(200).json({
                 status: 200,
-                message: 'uploaded img prod: ' + req.file.originalname
+                message: 'uploaded image: ' + req.file.originalname
             })
         });
     })
@@ -64,7 +64,7 @@ function Reftocontroller_Store(app) {
     Rounter.get('/delete-product/:id', checkController.checkToken, storeController.deleteProduct)
     Rounter.post('/delete-product-many/', checkController.checkToken, storeController.deleteProductMany)
     Rounter.put('/update-user/:id', checkController.checkToken, storeController.updateUser)
-    Rounter.put('/update-product/:id', storeController.updateProduct)
+    Rounter.put('/update-product/:id', checkController.checkToken, storeController.updateProduct)
     Rounter.post('/create-role', storeController.createRole);
     Rounter.post('/check-token', checkController.checkToken2)
 

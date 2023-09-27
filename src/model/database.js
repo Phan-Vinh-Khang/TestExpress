@@ -10,7 +10,7 @@ const db = mysql.createPool({
 const connect_db = new Sequelize('testdbstore', 'root', undefined, {
     host: 'localhost',
     dialect: 'mysql',
-    logging: false
+    logging: false,
 });
 const check_connect = async (sequelize) => {
     try {
