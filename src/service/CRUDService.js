@@ -1,15 +1,28 @@
 import bcrypt from 'bcryptjs';
 import fs from "fs";
-import path from "node:path";
+import path from "path";
 import db from '../models';
 const { Op } = require("sequelize");
 import { generalAccessToken, generalReAccessToken } from './JwtService'
+import { name_regexEN, email_regex } from '../utilities/regex';
 const salt = bcrypt.genSaltSync(10);
 const avatarDirectory = path.join(__dirname, '../../public/avatar/')
 async function createUser(objData) {
     return new Promise(async (resolve, reject) => {
         //check user da ton tai trong database
         if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+            if (!email_regex(objData.email)) {
+                return reject({
+                    staus: 422,
+                    message: 'email khong hop le'
+                })
+            }
+            if (!name_regexEN(objData.name)) {
+                return reject({
+                    staus: 422,
+                    message: 'ten nguoi dung khong hop le'
+                })
+            }
             const checkAvailableUser = await db.Users.findAll({
                 where: {
                     email: objData.email
@@ -71,6 +84,18 @@ async function createUserAdmin(objData, { roleid }) {
     return new Promise(async (resolve, reject) => {
         //check user da ton tai trong database
         if (objData.name != '' && objData.email != '' && objData.password != '' && objData.confirmPassword != '') {
+            if (!email_regex(objData.email)) {
+                return reject({
+                    staus: 422,
+                    message: 'email khong hop le'
+                })
+            }
+            if (!name_regexEN(objData.name)) {
+                return reject({
+                    staus: 422,
+                    message: 'ten nguoi dung khong hop le'
+                })
+            }
             const checkAvailableUser = await db.Users.findAll({
                 where: {
                     email: objData.email
@@ -143,7 +168,6 @@ function preHandleUpdateData(data) {
         data.iscollab = 0
 }
 async function updateUser(id, data) {
-    console.log(data)
     const listRole = await db.Roles.findAll();
     let role = listRole.find((item) => {
         return item.name == data.roleid
@@ -171,9 +195,9 @@ async function updateUser(id, data) {
 
         }
     }
-    if (data.fileNameUid) { //undefine err
-        const filePath = path.join(avatarDirectory, user.image);
+    if (data.fileNameUid) {
         if (user.image) {
+            const filePath = path.join(avatarDirectory, user.image);
             fs.unlinkSync(filePath);
         }
         user.image = data.fileNameUid
@@ -190,6 +214,7 @@ async function updateUser(id, data) {
 }
 async function deleteUser(id) {
     return new Promise(async (resolve, reject) => {
+        console.log(id)
         const user = await db.Users.findByPk(id)
         const isDeleted = await db.Users.destroy({
             where: {
@@ -233,7 +258,6 @@ async function deleteUserMany(listId) {
     })
     data.map(({ image }) => {
         const filePath = path.join(avatarDirectory, image);
-        console.log('image', image)
         if (image) {
             fs.unlinkSync(filePath);
         }

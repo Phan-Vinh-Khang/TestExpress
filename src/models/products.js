@@ -5,7 +5,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsTo(models.TypeProducts, { foreignKey: 'typeprodid', as: 'detailTypeProd' })
       this.belongsTo(models.Users, { foreignKey: 'usercreatedid', as: 'detailUser' })
-      this.belongsTo(models.userShop, { foreignKey: 'usershopid', as: 'detailShop' })
+      this.belongsTo(models.userShops, { foreignKey: 'usershopid', as: 'detailShop' })
+      this.hasMany(models.Carts, { foreignKey: 'idProduct', onDelete: 'CASCADE' })
+      this.hasMany(models.detailOrders, { foreignKey: 'idProduct', onDelete: 'SET NULL' })
     }
   }
   Products.init({

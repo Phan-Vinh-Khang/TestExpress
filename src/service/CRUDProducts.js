@@ -15,7 +15,6 @@ async function createProduct(data, iduser) {
         }
     })
     if (checkTypeExist) {
-        console.log(data)
         await db.Products.create({
             name: data.name,
             price: data.price,
@@ -40,13 +39,21 @@ async function createProduct(data, iduser) {
         message: 'typeid khong ton tai',
     })
 }
-async function detailProduct(idProd) {
-    const prod = await db.Products.findOne({
-        where: {
-            id: idProd
+async function detailProduct(id) {
+    const prod = await db.Products.findByPk(id)
+    const shop = await prod.getDetailShop();
+    if (prod) {
+        return {
+            stauts: 200,
+            product: prod,
+            shop: shop
         }
-    })
-    return prod;
+    } else {
+        throw {
+            status: 422,
+            message: 'id product khong ton tai'
+        }
+    }
 }
 async function allProduct() {
     let listProduct = await db.Products.findAll({
@@ -95,7 +102,6 @@ async function updateProduct(data, id) {
     if (data.fileNameUid) {
         if (product.image) {
             const filePath = path.join(imageProductDirectory, product.image);
-            console.log('unlinkSync')
             fs.unlinkSync(filePath);
         }
         product.image = data.fileNameUid
@@ -150,7 +156,6 @@ async function deleteProduct(id) {
     }
 }
 async function deleteProductMany(listId) {
-    console.log('list id: ', listId)
     const productsImage = await db.Products.findAll({
         where: {
             id: listId //ref vào dc arr,ko can su dung map()

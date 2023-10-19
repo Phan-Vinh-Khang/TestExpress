@@ -6,8 +6,24 @@ module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
     static associate(models) {
       this.belongsTo(models.Roles, { foreignKey: 'roleid', as: 'role' })
-      this.hasMany(models.userShop, { foreignKey: 'createdbyuserid', as: 'allShop' })
-      this.hasMany(models.Products, { foreignKey: 'usercreatedid', as: 'allProduct' })
+      this.hasMany(models.userShops, {
+        foreignKey: 'createdbyuserid',
+        onDelete: 'CASCADE',
+        as: 'allShop'
+      })
+      this.hasMany(models.Products, {
+        foreignKey: 'usercreatedid',
+        onDelete: 'CASCADE',
+        as: 'allProduct'
+      })
+      this.hasMany(models.Carts, {
+        foreignKey: 'idUser',
+        onDelete: 'CASCADE'
+      })
+      this.hasMany(models.Orders, {
+        foreignKey: 'orderByUserId'
+        //nếu ko set onDelete default sẽ là onDelete: 'SET NULL'
+      })
     }
   }
   Users.init({
@@ -17,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
     image: DataTypes.STRING,
     adress: DataTypes.STRING,
     roleid: DataTypes.INTEGER,
-    iscollab: DataTypes.BOOLEAN
+    iscollab: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Users',

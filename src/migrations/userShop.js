@@ -17,6 +17,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.INTEGER
       },
+      deliveryAddress: {
+        allowNull: true,
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

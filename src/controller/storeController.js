@@ -1,7 +1,9 @@
 import Service from "../service/CRUDService";
 import ServiceProd from "../service/CRUDProducts";
 import ServiceRoles from "../service/CRUDRoles";
-import JwtService from "../service/JwtService"
+import ServiceUserShop from '../service/CRUDuserShop';
+import ServiceOrders from '../service/CRUDOrders';
+import JwtService from "../service/JwtService";
 import db from '../models';
 async function home(ref, res) {
     // var data = await db.Users.findAll();
@@ -25,7 +27,12 @@ async function createProduct(req, res) {
     }
 }
 async function detailProduct(req, res) {
-    res.status(200).json(await ServiceProd.detailProduct(req.params.id))
+    try {
+        console.log(req.params)
+        res.status(200).json(await ServiceProd.detailProduct(req.params.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
 }
 async function allProduct(req, res) {
     res.status(200).json(await ServiceProd.allProduct())
@@ -95,6 +102,7 @@ async function allRole(req, res) {
 async function updateUser(req, res) {
     if (req.body.access_token.id == req.params.id || req.body.access_token.roleid < 3) {
         try {
+            console.log(req.body)
             res.status(200).json(await Service.updateUser(req.params.id, req.body.data));
             //neu Promise() return ve err se vao catch var e sẽ ref vao data err vua return
         } catch (e) {
@@ -105,7 +113,7 @@ async function updateUser(req, res) {
 }
 async function createUserAdmin(req, res) {
     try {
-        res.status(200).json(await Service.createUserAdmin(req.body, req.body.access_token));
+        res.status(200).json(await Service.createUserAdmin(req.body.data, req.body.access_token));
     } catch (e) {
         res.status(409).json(e);
     }
@@ -171,6 +179,43 @@ async function deleteProductMany(req, res) {
         res.status(200).json(await ServiceProd.deleteProductMany(req.body.listId));
     } catch (e) {
         res.status(409).json(e)
+    }
+}
+async function createUserShop(req, res) {
+    try {
+        res.status(200).json(await ServiceUserShop.createUserShop(req.body.data, req.body.access_token))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
+async function getShopByProduct(req, res) {
+    try {
+        res.status(200).json(await ServiceUserShop.getShopByProduct(req.params.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
+async function getShopById(req, res) {
+    try {
+        res.status(200).json(await ServiceUserShop.getShopById(req.params.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
+async function checkout(req, res) {
+    try {
+        res.status(200).json(await ServiceOrders.checkout(req.body.data))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
+async function checkValidCart(req, res, next) {
+    try {
+        await ServiceOrders.checkValidCart(req.body.data.listproduct)
+        //data tuong tu nhu checkout 
+        next();
+    } catch (e) {
+        res.status(422).json(e)
     }
 }
 async function authenticationUser(req, res) {
@@ -248,5 +293,11 @@ module.exports = {
     deleteUser,
     deleteUserMany,
     deleteProduct,
-    deleteProductMany
+    deleteProductMany,
+    createUserShop,
+    getShopByProduct,
+    getShopById,
+    checkout,
+    checkValidCart
+
 }

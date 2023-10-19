@@ -27,24 +27,6 @@ const checkToken = (req, res, next) => {//check access token
         }
     })
 }
-const checkToken2 = (req, res, next) => {
-    const token = req.headers.authorization.split(" ")[1];
-    jwt.verify(token, ACCESS_TOKEN, (err, data) => {
-        if (err) {
-            res.status(498).json({
-                status: 498,
-                message: 'access token expired or not correct '
-            })
-        }
-        else {
-            res.status(200).json({
-                status: 200,
-                message: 'ok'
-            })
-        }
-    })
-
-}
 async function reFreshtoken(tokenCookie) {
     return jwt.verify(tokenCookie, REFRESH_TOKEN, async (err, data) => {
         if (!err) {
@@ -63,30 +45,9 @@ async function reFreshtoken(tokenCookie) {
 
     })
 }
-async function AuthUser(req, res, next) { //check xem user cần sửa data có phải la user đang đăng nhập ko
-    jwt.verify(req.body.JWTToken, ACCESS_TOKEN, (err, data) => {
-        if (!err) {
-            //check data.role==1||data.id==req.params.id?
-            /*
-             nếu k check data.id==req.pafams.id, nếu user1 biết route sua,thay đổi thong tin và iduser của user2 khác user1 chỉ cần
-             dùng các phần mềm để gửi route(postman,extension....) và điền iduser của user2 và gửi req
-             khi check token sẽ decode dc nhưng đó là token của user1 sau khi decode func sẽ next()
-             và thay đổi thông tin user2 (user1 có thể thay đổi user2)
-             */
-            next();
-        }
-        else {
-            res.status(200).json({
-                message: 'invalid access token'
-            })
-        }
-    })
-}
 module.exports = {
     generalAccessToken,
     generalReAccessToken,
     checkToken,
-    reFreshtoken,
-    AuthUser,
-    checkToken2
+    reFreshtoken
 }
