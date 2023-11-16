@@ -1,6 +1,8 @@
 import db from '../models';
 import fs from "fs";
 import path from "path";
+import Fuse from 'fuse.js'
+import { Op } from 'sequelize';
 const imageProductDirectory = path.join(__dirname, '../../public/img/products/')
 async function createProduct(data, iduser) {
     if (!data.name || !data.price || !data.quantity) {
@@ -55,13 +57,36 @@ async function detailProduct(id) {
         }
     }
 }
-async function allProduct() {
+async function allProduct(search, page) {
     let listProduct = await db.Products.findAll({
         include: {
             model: db.TypeProducts,
             as: 'detailTypeProd'
-        }
+        },
+        // where: {
+        //     name: {
+        //         [Op.like]: '%' + search + '%'
+        //     }
+        // }
     });
+    if (search) {
+        const options = {
+            keys: ['name'],
+            includeScore: true,
+            isCaseSensitive: true,
+            shouldSort: true,
+        }
+        let fuse = new Fuse(listProduct, options);
+        listProduct = []
+        let fuseData = fuse.search(search);
+        fuseData.map((item) => {
+            listProduct.push(item.item)
+        })
+    }
+    let productCount = listProduct.length;
+    listProduct = listProduct.slice(30 * (page - 1), 30 * (page))
+    console.log(listProduct.length)
+
     listProduct.map((item) => {
         item.typeprodid = item.detailTypeProd.typeprodname
         delete item.dataValues.detailTypeProd
@@ -77,7 +102,8 @@ async function allProduct() {
     })
     return {
         status: 200,
-        listProduct
+        listProduct,
+        productCount
     }
 }
 async function updateProduct(data, id) {

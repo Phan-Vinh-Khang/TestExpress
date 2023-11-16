@@ -32,7 +32,7 @@ function Reftocontroller_Store(app) {
     Rounter.post('/check-user-login', storeController.checkUserLogin);
     Rounter.post('/create-user', storeController.createUser);
     Rounter.post('/create-product', checkController.checkToken, storeController.createProduct)
-    Rounter.get('/all-product', storeController.allProduct)
+    Rounter.get('/all-product/', storeController.allProduct)
     Rounter.get('/detail-product/:id', storeController.detailProduct)
     Rounter.get('/detail-user/:id', storeController.detailUser)
     Rounter.get('/authentication-user', checkController.checkToken, storeController.authenticationUser)
@@ -70,7 +70,11 @@ function Reftocontroller_Store(app) {
     Rounter.get('/get-shop-by-product/:id', storeController.getShopByProduct);
     Rounter.get('/get-shop-by-id/:id', storeController.getShopById);
     Rounter.post('/checkout', checkController.checkToken, storeController.checkout);
-    Rounter.post('/checkout-cart', storeController.checkValidCart, storeController.checkout);
+    // Rounter.post('/checkout-cart', storeController.checkValidCart, storeController.checkout);
+
+    Rounter.post('/addcart', checkController.checkToken, storeController.addcart);
+
+    Rounter.get('/getcart', checkController.checkToken, storeController.getcart);
 
     Rounter.get('/reFresh-token', storeController.reFreshtoken);
 

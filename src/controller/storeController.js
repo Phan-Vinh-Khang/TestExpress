@@ -28,14 +28,14 @@ async function createProduct(req, res) {
 }
 async function detailProduct(req, res) {
     try {
-        console.log(req.params)
         res.status(200).json(await ServiceProd.detailProduct(req.params.id))
     } catch (e) {
         res.status(422).json(e)
     }
 }
 async function allProduct(req, res) {
-    res.status(200).json(await ServiceProd.allProduct())
+    console.log(req.query.search)
+    res.status(200).json(await ServiceProd.allProduct(req.query.search, req.query.page))
 }
 async function updateProduct(req, res) {
     const authorization = await db.Products.findOne({
@@ -204,20 +204,34 @@ async function getShopById(req, res) {
 }
 async function checkout(req, res) {
     try {
-        res.status(200).json(await ServiceOrders.checkout(req.body.data))
+        res.status(200).json(await ServiceOrders.checkout(req.body.data, req.body.access_token))
     } catch (e) {
         res.status(422).json(e)
     }
 }
-async function checkValidCart(req, res, next) {
+async function addcart(req, res) {
     try {
-        await ServiceOrders.checkValidCart(req.body.data.listproduct)
-        //data tuong tu nhu checkout 
-        next();
+        res.status(200).json(await ServiceOrders.addcart(req.body.data, req.body.access_token.id))
     } catch (e) {
         res.status(422).json(e)
     }
 }
+async function getcart(req, res) {
+    try {
+        res.status(200).json(await ServiceOrders.getcart(req.body.access_token.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
+// async function checkValidCart(req, res, next) {
+//     try {
+//         await ServiceOrders.checkValidCart(req.body.data.listproduct)
+//         //data tuong tu nhu checkout 
+//         next();
+//     } catch (e) {
+//         res.status(422).json(e)
+//     }
+// }
 async function authenticationUser(req, res) {
     try {
         res.status(200).json(await Service.authenticationUser(req.body.access_token.id));
@@ -298,6 +312,7 @@ module.exports = {
     getShopByProduct,
     getShopById,
     checkout,
-    checkValidCart
-
+    addcart,
+    getcart
+    // checkValidCart
 }
