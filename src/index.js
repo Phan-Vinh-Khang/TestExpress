@@ -20,6 +20,7 @@ const port = parseInt(process.env.PORT);
 const corsOptions = {
     origin: [
         'http://localhost:3000',
+        'https://shopreactjs.vercel.app',
         // your origins here
     ],
     credentials: true,//cho phép nhận cookie từ client
