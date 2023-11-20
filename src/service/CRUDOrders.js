@@ -1,72 +1,162 @@
 import { access } from 'fs';
 import db from '../models';
 async function checkout(data, access_token) {
-    // console.log(data[0].listproduct)
-    const order = await db.Orders.create({
-        orderByUserId: access_token.id,
-        deliveryDate: '',
-        message: '',
-        status: false,
-    })
-    for (let i = 0; i < data.length; i++) {
-        data[i].listproduct.map(async (item) => {
-            const product = await db.Products.findByPk(item.id);
-            if (!product) {
-                throw {
-                    status: 422,
-                    message: `1 vai sản phẩm ko co san`
+    return new Promise(async (resolve, reject) => {
+        for (let i = 0; i < data.length; i++) {
+            data[i].listproduct.map(async (item) => {
+                const product = await db.Products.findByPk(item.id);
+                if (!product) {
+                    return reject({
+                        status: 422,
+                        message: `1 vai sản phẩm ko co san`
+                    })
                 }
-            }
-            else if (product.quantity != 0) {
-                if (product.quantity < item.selectQuantity)
-                    throw {
-                        status: 422,
-                        message: 'co 1 vài sản pham ko du so luong'
+                if (product) {
+                    if (product.price != item.price) {
+                        return reject({
+                            status: 422,
+                            message: 'gia san pham da thay doi'
+                        })
                     }
-                if (item.selectQuantity == 0) {
-                    throw {
-                        status: 422,
-                        message: 'so luong dat mua phai lon hon 0'
+                    else if (product.discount != item.discount) {
+                        return reject({
+                            status: 422,
+                            message: 'giam gia san pham da thay doi'
+                        })
                     }
                 }
-            }
-            else {
-                throw {
-                    status: 422,
-                    message: 'san pham da het hang'
+                if (product.quantity != 0) {
+                    if (product.quantity < item.selectQuantity)
+                        return reject({
+                            status: 422,
+                            message: 'co 1 vài sản pham ko du so luong'
+                        })
+                    if (item.selectQuantity <= 0) {
+                        return reject({
+                            status: 422,
+                            message: 'so luong dat mua phai lon hon 0'
+                        })
+                    }
                 }
-            }
-        })
-    }
-    for (let i = 0; i < data.length; i++) {
-        data[i].listproduct.map(async (item) => {
-            const product = await db.Products.findByPk(item.id);
-            product.quantity -= item.selectQuantity
-            product.save();
-            await db.detailOrders.create({
-                idOrder: order.id,
-                idProduct: product.id,
-                quantity: item.selectQuantity,
-                price: product.price,
-                discount: product.discount
-                //su dung data o table product,neu su dung data dc gui den data co the bi thay doi
-            })
-        })
-    }
-    data.map(async (item) => {
-        item.listproduct.map(async (item2) => {
-            await db.Carts.destroy({
-                where: {
-                    id: access_token.id,
-                    idProduct: item2.id
+                if (product.quantity == 0) {
+                    console.log('product2', item.selectQuantity)
+                    return reject({
+                        status: 422,
+                        message: 'san pham da het hang'
+                    })
                 }
             })
+
+        }
+        const order = await db.Orders.create({
+            orderByUserId: access_token.id,
+            deliveryDate: '',
+            message: '',
+            status: false,
+        })
+        for (let i = 0; i < data.length; i++) {
+            data[i].listproduct.map(async (item) => {
+                const product = await db.Products.findByPk(item.id);
+                await db.detailOrders.create({
+                    idOrder: order.id,
+                    idProduct: product.id,
+                    quantity: item.selectQuantity,
+                    price: product.price,
+                    discount: product.discount
+                    //su dung data o table product,neu su dung data dc gui den data co the bi thay doi
+                })
+                await db.Carts.destroy({
+                    where: {
+                        idUser: access_token.id,
+                        idProduct: product.id
+                    }
+                })
+                product.quantity -= item.selectQuantity
+                product.save();
+            })
+        }
+        resolve({
+            status: 200,
+            message: 'order'
         })
     })
-    return {
-        status: 200,
-        message: 'order'
-    }
+    // for (let i = 0; i < data.length; i++) {
+    //     for (let z = 0; z < data[i].length; z++) {
+    //         console.log('product1', data[i].listproduct[z].selectQuantity)
+    //         const product = await db.Products.findByPk(data[i].listproduct[z].id);
+    //         if (!product) {
+    //             throw {
+    //                 status: 422,
+    //                 message: `1 vai sản phẩm ko co san`
+    //             }
+    //         }
+    //         if (product) {
+    //             if (product.price != data[i].listproduct[z].price) {
+    //                 throw {
+    //                     status: 422,
+    //                     message: 'gia san pham da thay doi'
+    //                 }
+    //             }
+    //             else if (product.discount != data[i].listproduct[z].discount) {
+    //                 throw {
+    //                     status: 422,
+    //                     message: 'giam gia san pham da thay doi'
+    //                 }
+    //             }
+    //         }
+    //         if (product.quantity != 0) {
+    //             if (product.quantity < data[i].listproduct[z].selectQuantity)
+    //                 throw {
+    //                     status: 422,
+    //                     message: 'co 1 vài sản pham ko du so luong'
+    //                 }
+    //             if (data[i].listproduct[z].selectQuantity <= 0) {
+    //                 throw {
+    //                     status: 422,
+    //                     message: 'so luong dat mua phai lon hon 0'
+    //                 }
+    //             }
+    //         }
+    //         if (product.quantity == 0) {
+    //             console.log('product2', data[i].listproduct[z].selectQuantity)
+    //             throw {
+    //                 status: 422,
+    //                 message: 'san pham da het hang'
+    //             }
+    //         }
+    //     }
+    // }
+    // const order = await db.Orders.create({
+    //     orderByUserId: access_token.id,
+    //     deliveryDate: '',
+    //     message: '',
+    //     status: false,
+    // })
+    // for (let i = 0; i < data.length; i++) {
+    //     data[i].listproduct.map(async (item) => {
+    //         const product = await db.Products.findByPk(item.id);
+    //         await db.detailOrders.create({
+    //             idOrder: order.id,
+    //             idProduct: product.id,
+    //             quantity: item.selectQuantity,
+    //             price: product.price,
+    //             discount: product.discount
+    //             //su dung data o table product,neu su dung data dc gui den data co the bi thay doi
+    //         })
+    //         await db.Carts.destroy({
+    //             where: {
+    //                 idUser: access_token.id,
+    //                 idProduct: product.id
+    //             }
+    //         })
+    //         product.quantity -= item.selectQuantity
+    //         product.save();
+    //     })
+    // }
+    // return {
+    //     status: 200,
+    //     message: 'order'
+    // }
 }
 async function addcart(data, id) {
     let productIsExist = await db.Products.findByPk(data.id)
@@ -151,28 +241,14 @@ async function getcart(id) {
         }]
     });
     let message = ''
-    console.log(listCart.length)
-    // const validCartItems = listCart.filter(cartItem => cartItem.Product !== null);
-    // if (listCart.length != validCartItems.length)
-    // message += 'co 1 vai san pham ko con ton tai '
-    // validCartItems.forEach((item, i) => {
-    //     if (item.Product.quantity == 0) {
-    //         item.Product.dataValues.available = false;
-    //         item.Product.dataValues.cartQuantity = 0;
-    //     }
-    //     else if (item.Product.quantity < item.quantity) {
-    //         item.Product.dataValues.cartQuantity = item.Product.quantity
-    //         item.Product.dataValues.available = true;
-    //         message = 'so luong 1 vai san pham ko du'
-    //     }
-    //     else {
-    //         // console.log(item.Product)
-    //         item.Product.dataValues.cartQuantity = item.quantity
-    //         item.Product.dataValues.available = true;
-    //     }
-    // })
-    listCart = listCart.filter((item, i) => {
+    listCart = listCart.filter((item) => {
         if (item.Product == null) {
+            message += 'co 1 vai san pham ko ton tai'
+            db.Carts.destroy({
+                where: {
+                    id: item.id
+                }
+            })
             return false;
         } else {
             if (item.Product.quantity == 0) {
@@ -182,7 +258,7 @@ async function getcart(id) {
             else if (item.Product.quantity < item.quantity) {
                 item.Product.dataValues.cartQuantity = item.Product.quantity
                 item.Product.dataValues.available = true;
-                message = 'so luong 1 vai san pham ko du'
+                message += 'so luong 1 vai san pham ko du'
             }
             else {
                 item.Product.dataValues.cartQuantity = item.quantity
@@ -191,12 +267,8 @@ async function getcart(id) {
             return true;
         }
     });
-    console.log(listCart.length)
-
     let result = listCart.reduce((acc, curr) => {
-        // curr.Product.cartQuantity = curr.quantity
         let shopIndex = acc.findIndex(item => item.shop.id === curr.Product.usershopid);
-        // console.log(curr.quantity)
         if (shopIndex !== -1) {
             acc[shopIndex].listproduct.push(curr.Product);
         } else {
