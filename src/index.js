@@ -3,9 +3,6 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bodyParser, { urlencoded } from 'body-parser'
 import * as path from 'path';
-import ViewEngines from './config/ViewEngines' //EJS
-import Reftocontroller from './Reftocontroller'
-import Reftocontroller_Api from './reftocontroller/api';
 import Reftocontroller_Store from './reftocontroller/apiStore';
 import connection from './model/database'
 import { connect_db, check_connect } from './model/database'
@@ -43,7 +40,6 @@ app.use(express.static(path.join('C:/Users/Admin/Desktop/TestExpress/public')))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 //view engines EJS
-// ViewEngines(app)
 Reftocontroller(app)
 // Reftocontroller_Api(app)
 Reftocontroller_Store(app)
