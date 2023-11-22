@@ -29,7 +29,7 @@ app.use(cookieParser())
 const morgan = require('morgan');
 app.use(morgan('combined'));
 //public
-app.use(express.static(path.join('C:/Users/Admin/Desktop/TestExpress/public')))
+app.use(express.static(path.join('./public')))
 {
     //view engines handlebars
     // app.engine('hbs', engine({ extname: '.hbs' })); //using view engine
