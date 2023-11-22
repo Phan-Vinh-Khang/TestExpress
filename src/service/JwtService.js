@@ -4,7 +4,7 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN || 'ACCESS_TOKEN';
 const REFRESH_TOKEN = process.env.REFRESH_TOKEN || 'REFRESH_TOKEN';
 const generalAccessToken = async (data) => { //return về 1 chuỗi mã hóa của data
     //Short term token
-    return jwt.sign(data, ACCESS_TOKEN, { expiresIn: '30s' })
+    return jwt.sign(data, ACCESS_TOKEN, { expiresIn: '1d' })
 }
 //các para lần lượt: data(data này sẽ dc mã hóa khi gửi về client),secretkey,thời gian hết hạn
 const generalReAccessToken = async (data) => {
