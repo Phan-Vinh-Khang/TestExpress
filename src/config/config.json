@@ -1,9 +1,9 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "testdbstore",
-    "host": "127.0.0.1",
+    "username": "sql12664193",
+    "password": "cgSmvKm3wk",
+    "database": "sql12664193",
+    "host": "sql12.freesqldatabase.com",
     "dialect": "mysql",
     "timezone": "+7:00"
   },
@@ -15,10 +15,10 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
+    "username": "sql12664193",
+    "password": "cgSmvKm3wk",
+    "database": "sql12664193",
+    "host": "ql12.freesqldatabase.com",
     "dialect": "mysql"
   }
 }

@@ -46,7 +46,6 @@ async function checkout(data, access_token) {
                     })
                 }
             })
-
         }
         const order = await db.Orders.create({
             orderByUserId: access_token.id,
