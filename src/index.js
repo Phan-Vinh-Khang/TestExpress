@@ -40,7 +40,6 @@ app.use(express.static(path.join('C:/Users/Admin/Desktop/TestExpress/public')))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 //view engines EJS
-Reftocontroller(app)
 // Reftocontroller_Api(app)
 Reftocontroller_Store(app)
 app.use((ref, res) => {
