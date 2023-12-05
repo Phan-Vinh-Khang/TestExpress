@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import bodyParser, { urlencoded } from 'body-parser'
+const compression = require('compression');
 import * as path from 'path';
 import Reftocontroller_Store from './reftocontroller/apiStore';
 import connection from './model/database'
@@ -11,6 +12,7 @@ require('dotenv').config()
 //express
 const app = express();
 app.use(urlencoded({ extended: true }))
+app.use(compression());
 const port = parseInt(process.env.PORT);
 //cors (đặt trước khi active rounter)
 const corsOptions = {

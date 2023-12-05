@@ -1,8 +1,8 @@
 {
   "development": {
-    "username": "sql12664193",
-    "password": "cgSmvKm3wk",
-    "database": "sql12664193",
+    "username": "sql12666976",
+    "password": "kHrb7HfnhW",
+    "database": "sql12666976",
     "host": "sql12.freesqldatabase.com",
     "dialect": "mysql",
     "timezone": "+7:00"
@@ -15,9 +15,9 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "sql12664193",
-    "password": "cgSmvKm3wk",
-    "database": "sql12664193",
+    "username": "sql12666976",
+    "password": "kHrb7HfnhW",
+    "database": "sql12666976",
     "host": "ql12.freesqldatabase.com",
     "dialect": "mysql"
   }

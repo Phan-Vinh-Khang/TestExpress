@@ -223,6 +223,13 @@ async function getcart(req, res) {
         res.status(422).json(e)
     }
 }
+async function getorder(req, res) {
+    try {
+        res.status(200).json(await ServiceOrders.getorder(req.body.access_token.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
 // async function checkValidCart(req, res, next) {
 //     try {
 //         await ServiceOrders.checkValidCart(req.body.data.listproduct)
@@ -313,6 +320,7 @@ module.exports = {
     getShopById,
     checkout,
     addcart,
-    getcart
+    getcart,
+    getorder
     // checkValidCart
 }

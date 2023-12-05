@@ -75,6 +75,7 @@ function Reftocontroller_Store(app) {
     Rounter.post('/addcart', checkController.checkToken, storeController.addcart);
 
     Rounter.get('/getcart', checkController.checkToken, storeController.getcart);
+    Rounter.get('/getorder', checkController.checkToken, storeController.getorder);
 
     Rounter.get('/reFresh-token', storeController.reFreshtoken);
 

@@ -1,5 +1,6 @@
 import { access } from 'fs';
 import db from '../models';
+const { Op } = require("sequelize");
 async function checkout(data, access_token) {
     return new Promise(async (resolve, reject) => {
         for (let i = 0; i < data.length; i++) {
@@ -284,6 +285,59 @@ async function getcart(id) {
         message: message
     }
 }
+async function getorder(id) {
+    return new Promise(async (resolve, reject) => {
+        const listorder = await db.Orders.findAll({
+            where: {
+                orderByUserId: id
+            }
+        })
+        const arrlistorder = listorder.map((item) => { return item.id })
+        let detailOrder = await db.detailOrders.findAll({
+            where: {
+                idOrder: arrlistorder
+            },
+            include: {
+                model: db.Products,
+                include: {
+                    model: db.userShops,
+                    as: 'detailShop'
+                }
+            }
+        })
+        let result = detailOrder.reduce((acc, cur) => {
+            let order = acc.find((o) => o.idOrder === cur.dataValues.idOrder);
+            if (!order) {
+                order = { idOrder: cur.dataValues.idOrder, totalPrice: 0, listDetailOrder: [] };
+                acc.push(order);
+            }
+
+            let shop = order.listDetailOrder.find(
+                (s) => s.shopName.name === cur.dataValues.Product.dataValues.detailShop.dataValues.name
+            );
+            if (!shop) {
+                shop = {
+                    shopName: cur.dataValues.Product.dataValues.detailShop.dataValues,
+                    listProduct: [],
+                    totalPriceShop: 0,
+                };
+                order.listDetailOrder.push(shop);
+            }
+
+            shop.listProduct.push(cur.dataValues);
+            let productTotalPrice = cur.dataValues.price * cur.dataValues.quantity;
+            shop.totalPriceShop += productTotalPrice;
+            order.totalPrice += productTotalPrice;
+
+            return acc;
+        }, []);
+        resolve({
+            status: 200,
+            message: 'order',
+            data: result
+        })
+    })
+}
 // async function checkValidCart(listproduct, access_token) {
 //     const isValid = await db.Carts.findAll({
 //         where: {
@@ -300,6 +354,7 @@ async function getcart(id) {
 module.exports = {
     checkout,
     addcart,
-    getcart
+    getcart,
+    getorder
     // checkValidCart,
 }
