@@ -20,7 +20,6 @@ const corsOptions = {
         'http://localhost:3000',
         'https://shopreactjs.vercel.app',
         'https://shopreactjs-khangs-projects-d475e023.vercel.app/',
-        'https://shopreactjs-khangs-projects-d475e023.vercel.app/'
         // your origins here
     ],
     credentials: true,//cho phép nhận cookie từ client
