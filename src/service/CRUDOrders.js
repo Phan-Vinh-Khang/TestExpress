@@ -72,6 +72,7 @@ async function checkout(data, access_token) {
                     }
                 })
                 product.quantity -= item.selectQuantity
+                product.sold += item.selectQuantity
                 product.save();
             })
         }
