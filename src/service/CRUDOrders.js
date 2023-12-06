@@ -1,6 +1,4 @@
-import { access } from 'fs';
 import db from '../models';
-const { Op } = require("sequelize");
 async function checkout(data, access_token) {
     return new Promise(async (resolve, reject) => {
         for (let i = 0; i < data.length; i++) {
@@ -221,9 +219,6 @@ async function addcart(data, id) {
         message: 'addcart'
     }
 }
-async function checkAvailable(productdb, productOrder) {
-
-}
 async function getcart(id) {
     let listCart = await db.Carts.findAll({
         where: {
@@ -291,7 +286,8 @@ async function getorder(id) {
         const listorder = await db.Orders.findAll({
             where: {
                 orderByUserId: id
-            }
+            },
+            order: [['id', 'ASC']]
         })
         const arrlistorder = listorder.map((item) => { return item.id })
         let detailOrder = await db.detailOrders.findAll({
@@ -339,23 +335,9 @@ async function getorder(id) {
         })
     })
 }
-// async function checkValidCart(listproduct, access_token) {
-//     const isValid = await db.Carts.findAll({
-//         where: {
-//             id: access_token.id,
-//             idProduct: listproduct
-//         }
-//     })
-//     if (isValid.length != listproduct.length)
-//         throw {
-//             status: 422,
-//             message: 'id products ko ton tai trong gio hang'
-//         }
-// }
 module.exports = {
     checkout,
     addcart,
     getcart,
     getorder
-    // checkValidCart,
 }
