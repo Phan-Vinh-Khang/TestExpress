@@ -7,7 +7,7 @@ const db = mysql.createPool({
     user: 'root',
     database: 'testdbNodeJS'
 });
-const connect_db = new Sequelize('sql12668565', 'sql12668565', 'IirYIZmPea', {
+const connect_db = new Sequelize('sql12670437', 'sql12670437', 'ce3WgyBkxf', {
     host: 'sql12.freesqldatabase.com',
     dialect: 'mysql',
     logging: false,
