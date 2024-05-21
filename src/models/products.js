@@ -21,7 +21,8 @@ module.exports = (sequelize, DataTypes) => {
     sold: DataTypes.INTEGER,
     typeprodid: DataTypes.INTEGER,
     usercreatedid: DataTypes.INTEGER,
-    usershopid: DataTypes.INTEGER
+    usershopid: DataTypes.INTEGER,
+    isdelete: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Products',

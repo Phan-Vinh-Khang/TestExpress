@@ -230,15 +230,13 @@ async function getorder(req, res) {
         res.status(422).json(e)
     }
 }
-// async function checkValidCart(req, res, next) {
-//     try {
-//         await ServiceOrders.checkValidCart(req.body.data.listproduct)
-//         //data tuong tu nhu checkout 
-//         next();
-//     } catch (e) {
-//         res.status(422).json(e)
-//     }
-// }
+async function deleteCart(req, res) {
+    try {
+        res.status(200).json(await ServiceOrders.deleteCart(req.body.listId, req.body.access_token.id))
+    } catch (e) {
+        res.status(422).json(e)
+    }
+}
 async function authenticationUser(req, res) {
     try {
         res.status(200).json(await Service.authenticationUser(req.body.access_token.id));
@@ -321,6 +319,6 @@ module.exports = {
     checkout,
     addcart,
     getcart,
-    getorder
-    // checkValidCart
+    getorder,
+    deleteCart
 }

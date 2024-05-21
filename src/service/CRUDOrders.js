@@ -1,5 +1,6 @@
 import db from '../models';
 async function checkout(data, access_token) {
+    console.log(data[0].listproduct)
     return new Promise(async (resolve, reject) => {
         for (let i = 0; i < data.length; i++) {
             data[i].listproduct.map(async (item) => {
@@ -7,41 +8,50 @@ async function checkout(data, access_token) {
                 if (!product) {
                     return reject({
                         status: 422,
-                        message: `1 vai sản phẩm ko co san`
+                        message: `sản phẩm ko tồn tại`
+                        //tranh truong hop xoa san pham vai s truoc khi user mua
+                        //hoặc su dung client tự gửi data với 1 sản phẩm ko tồn tại
+                        //có thể su dung isDetele để xem id là 1 sản phẩm ko tồn tại hay dc người bán xóa
                     })
                 }
-                if (product) {
-                    if (product.price != item.price) {
-                        return reject({
-                            status: 422,
-                            message: 'gia san pham da thay doi'
-                        })
-                    }
-                    else if (product.discount != item.discount) {
-                        return reject({
-                            status: 422,
-                            message: 'giam gia san pham da thay doi'
-                        })
-                    }
+                if (product.isdelete) {
+                    return reject({
+                        status: 422,
+                        message: 'người bán đã xóa sản phẩm'
+                    })
                 }
+                if (product.price != item.price) {
+                    return reject({
+                        status: 422,
+                        message: 'giá sản phẩm ko đúng hoặc đã dc thay đổi'
+                        //tranh truong hop xoa san pham vai s truoc khi user mua
+                        //hoặc client từ điền thong tin từ các app req API(postman) và thay đổi 1 vài data và gửi(thay đổi price thành 1)
+                    })
+                }
+                if (product.discount != item.discount) {
+                    return reject({
+                        status: 422,
+                        message: 'giảm giá sản phẩm ko đúng hoặc đã dc thay đổi'
+                    })
+                }
+
                 if (product.quantity != 0) {
                     if (product.quantity < item.selectQuantity)
                         return reject({
                             status: 422,
-                            message: 'co 1 vài sản pham ko du so luong'
+                            message: 'vượt số lượng hiện có của sản phẩm'
                         })
                     if (item.selectQuantity <= 0) {
                         return reject({
                             status: 422,
-                            message: 'so luong dat mua phai lon hon 0'
+                            message: 'số lượng phải lớn hơn 0'
                         })
                     }
                 }
                 if (product.quantity == 0) {
-                    console.log('product2', item.selectQuantity)
                     return reject({
                         status: 422,
-                        message: 'san pham da het hang'
+                        message: 'sản phẩm tạm thời hết hàng'
                     })
                 }
             })
@@ -61,7 +71,7 @@ async function checkout(data, access_token) {
                     quantity: item.selectQuantity,
                     price: product.price,
                     discount: product.discount
-                    //su dung data o table product,neu su dung data dc gui den data co the bi thay doi
+                    //den dc đoạn này đã bảo đảm dữ liệu dc gửi từ client là đúng
                 })
                 await db.Carts.destroy({
                     where: {
@@ -76,7 +86,7 @@ async function checkout(data, access_token) {
         }
         resolve({
             status: 200,
-            message: 'order'
+            message: 'đặt hàng thành công'
         })
     })
     // for (let i = 0; i < data.length; i++) {
@@ -162,27 +172,27 @@ async function addcart(data, id) {
     if (!productIsExist) {
         throw {
             status: 422,
-            message: 'san pham ko ton tai'
+            message: 'sản phẩm ko tồn tại'
         }
     }
     if (productIsExist.quantity != 0) {
         if (productIsExist.quantity < data.selectQuantity) {
             throw {
                 status: 422,
-                message: 'so luong dat hang lon hon so luong san pham hien tai'
+                message: 'vượt số lượng hiện có của sản phẩm'
             }
         }
         if (data.selectQuantity < 1) {
             throw {
                 status: 422,
-                message: 'so luong phai lon hon 0'
+                message: 'số lượng phải lớn hơn 0'
             }
         }
     }
     else {
         throw {
             status: 422,
-            message: 'san pham da het hang'
+            message: 'sản phẩm tạm thời hết hàng'
         }
     }
     let dataIsExist = await db.Carts.findOne({
@@ -200,23 +210,15 @@ async function addcart(data, id) {
     }
     else {
         dataIsExist.quantity += data.selectQuantity
-        if (dataIsExist.quantity > productIsExist.quantity) {
-            dataIsExist.quantity = productIsExist.quantity
-            throw {
-                status: 422,
-                message: 'số lượng sản phẩm đã đặt hàng đã hiện tại đã vượt quá số lượng hàng hiện có,sang giỏ hàng để xem chi tiet'
-            }
-        }
-
         dataIsExist.save();
         return {
             status: 200,
-            message: 'update cart'
+            message: 'đã cập nhật số lượng trong giỏ'
         }
     }
     return {
         status: 200,
-        message: 'addcart'
+        message: 'đã thêm sản phẩm vào giỏ'
     }
 }
 async function getcart(id) {
@@ -275,6 +277,7 @@ async function getcart(id) {
         }
         return acc;
     }, []);
+    message += 'get products in cart'
     return {
         status: 200,
         listCart: result,
@@ -335,9 +338,26 @@ async function getorder(id) {
         })
     })
 }
+async function deleteCart(listId, userId) {
+    return new Promise(async (resolve, reject) => {
+        let isDelete = await db.Carts.destroy({
+            where: {
+                idProduct: listId,
+                idUser: userId
+            }
+        })
+        if (isDelete == 0)
+            return reject({ status: 422, message: 'không tìm thấy id' })
+        resolve({
+            status: 200,
+            message: 'xóa sản phẩm trong giỏ hàng thành công'
+        })
+    })
+}
 module.exports = {
     checkout,
     addcart,
     getcart,
-    getorder
+    getorder,
+    deleteCart
 }

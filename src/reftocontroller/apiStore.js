@@ -76,7 +76,7 @@ function Reftocontroller_Store(app) {
 
     Rounter.get('/getcart', checkController.checkToken, storeController.getcart);
     Rounter.get('/getorder', checkController.checkToken, storeController.getorder);
-
+    Rounter.post('/deletecart', checkController.checkToken, storeController.deleteCart)
     Rounter.get('/reFresh-token', storeController.reFreshtoken);
 
     //var id sẽ ref vào đúng thứ tự trên URL
