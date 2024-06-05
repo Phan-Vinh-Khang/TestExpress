@@ -17,7 +17,8 @@ module.exports = (sequelize, DataTypes) => {
         image: DataTypes.STRING,
         createdbyuserid: DataTypes.INTEGER,
         lastActive: DataTypes.DATE,
-        deliveryaddress: DataTypes.STRING
+        deliveryaddress: DataTypes.STRING,
+        isdelete: DataTypes.BOOLEAN
     }, {
         sequelize,
         modelName: 'userShops',

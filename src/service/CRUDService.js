@@ -392,10 +392,11 @@ async function authenticationUser(userId) {
     return new Promise(async (resolve, reject) => {
         const user = await db.Users.findByPk(userId)
         if (user) {
-            const { id, password, roleid, createdAt, updatedAt, ...user2 } = user.dataValues;
+            const { id, password, roleid, createdAt, updatedAt, ...userFilter } = user.dataValues;
             resolve({
                 status: 200,
-                user: user2
+                message: 'authentication successfully',
+                user: userFilter
             })
         }
         else reject({
